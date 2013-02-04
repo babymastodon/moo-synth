@@ -1,0 +1,4 @@
+*.sw?
+.waf*
+.lock*
+*.pyc

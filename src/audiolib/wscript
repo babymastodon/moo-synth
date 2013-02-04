@@ -1,0 +1,17 @@
+#! /usr/bin/env python
+# encoding: utf-8
+
+
+def options(self):
+    pass
+
+def configure(self):
+    pass
+
+def build(self):
+    self.stlib(
+        source = self.path.ant_glob('*.c??'),
+        includes = self.include_dirs(),
+        target = 'audiolib',
+        use = ['stk'],
+        )
