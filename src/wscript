@@ -2,13 +2,16 @@
 # encoding: utf-8
 
 def options(opt):
+    opt.recurse('stk')
     opt.recurse('audiolib')
     opt.recurse('main')
 
 def configure(conf):
+    conf.recurse('stk')
     conf.recurse('audiolib')
     conf.recurse('main')
 
 def build(bld):
+    bld.recurse('stk')
     bld.recurse('audiolib')
     bld.recurse('main')

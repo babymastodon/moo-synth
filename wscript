@@ -45,79 +45,12 @@ def custom_check(self,**kwargs):
                 kwargs['msg'] = 'Checkinf for header {}'.format(header)
     return self.check(**kwargs)
 
-
-################################
-# Download helpers
-################################
-
 @add_to_context
-def download_and_extract(self, url, dirname, compression='zip'):
-    print "Downloading {}".format(url)
-
-    o={'counter':-1}
-    def pr(numblocks, block_size, total_size):
-        dl_size = numblocks*block_size
-        c = 10*dl_size/total_size
-        if c > o['counter']:
-            o['counter']= c
-            print "{} of {} bytes -- {}%".format(dl_size, total_size, 10*c)
-
-    def rm(path):
-        if os.path.isdir(path):
-            shutil.rmtree(path)
-        if os.path.isfile(path) or os.path.islink(path):
-            os.remove(path)
-
-    filename, headers = urllib.urlretrieve(url, reporthook=pr)
-    out_dir = self.download_dir().make_node(dirname).abspath()
-    rm(out_dir)
-    if compression=='zip':
-        with open(filename) as f:
-            z = zipfile.ZipFile(f)
-            z.extractall(out_dir)
-    elif compression in ['gzip', 'bz2']:
-        t = tarfile.open(name=filename, mode='r')
-        t.extractall(out_dir)
-    else:
-        self.fatal("Compression format {} is not supported".format(compression))
-
-    #flatten the extracted stuff if there's only one directory inside
-    if len(os.listdir(out_dir))==1:
-        inner_dirname = os.listdir(out_dir)[0]
-        tmp_dir = self.download_dir().make_node('temp_dir').abspath()
-        rm(tmp_dir)
-        shutil.move(out_dir, tmp_dir)
-        shutil.move(os.path.join(tmp_dir,inner_dirname), out_dir)
-        rm(tmp_dir)
-
-@add_to_context
-def download_dir(self,suffix=None):
-    dd = self.root.find_node(Context.top_dir).find_node('download')
-    if suffix:
-        dd = dd.make_node(suffix)
-    return dd
-
-@add_to_context
-def include_dir(self,suffix=None):
+def include_dirs(self, suffix=None):
     dd = self.root.find_node(Context.top_dir).find_node('include')
     if suffix:
         dd = dd.make_node(suffix)
-    return dd
-
-@add_to_context
-def include_dirs(self):
-    return [self.include_dir(), self.include_dir().get_bld()]
-
-
-################################
-# Download External libraries
-################################
-
-def download_stk(self):
-    self.download_and_extract('http://ccrma.stanford.edu/software/stk/release/stk-4.4.4.tar.gz',
-            'stk',compression='gzip')
-    stk_dir = self.download_dir().find_node('stk')
-
+    return [dd, dd.get_bld()]
 
 
 ################################
@@ -126,7 +59,6 @@ def download_stk(self):
 
 def options(self):
     self.load('compiler_cxx')
-    self.load('load_stk',tooldir='config')
 
     self.add_option('--enable-debug', default=False, action='store_true', dest='debug',
             help='to compile in debug mode')
@@ -135,22 +67,19 @@ def options(self):
 
 def configure(self):
     self.load('compiler_cxx')
-    self.load('load_stk',tooldir='config')
 
     #c++ compiler debug flags
     if self.options.debug:
         self.env.append_value('CXXFLAGS', '-g')
     else:
         self.env.append_value('CXXFLAGS', '-O3')
-    
     #if GNU, then use -Wall
     if self.env.CXX_NAME == 'gcc':
-        self.env.append_value('CXXFLAGS', '-Wall')
+        self.env.append_value('CXXFLAGS', '-Wall') 
 
-    #set some envrironment constants
     self.env.LIB_INSTALL_PATH = self.env.LIBDIR + "audio_test"
 
-    #get the copy command
+    #get the system copy command
     if sys.platform == 'win32':
         self.env.COPY = 'copy'
     else:
@@ -159,8 +88,11 @@ def configure(self):
     self.recurse('src')
 
 def build(self):
-    self.build_stk()
     self.recurse('src')
 
-    self.install_files('${PREFIX}/lib/',
-            self.path.ant_glob("resources/**"), relative_trick=True)
+    #copy the executable to the root of the build directory
+    self(rule="${COPY} ${SRC} ${TGT}", source=self.path.make_node('src/main/app').get_bld(), target='audio_test')
+
+def run(self):
+    p = self.root.find_node(Context.top_dir).find_node('build/audio_test').abspath()
+    os.system(p)

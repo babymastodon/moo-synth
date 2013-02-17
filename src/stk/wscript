@@ -8,9 +8,6 @@ from waflib import Context
 from waflib.Configure import conf
 
 def options(self):
-    self.add_option('--stk-path', action='store', default=None, dest='stk_path',
-            help="path to the STK source code (default ./downloads/stk)")
-
     if sys.platform == 'linux2':
         self.add_option('--with-alsa', default=False, action='store_true', dest='stk_alsa',
                 help='to choose native ALSA API support (default, linux only)')
@@ -38,16 +35,8 @@ def options(self):
 
 
 def configure(self):
-    #check for the STK libraries
-    if not self.options.stk_path:
-        stk_dir = self.download_dir().find_node('stk')
-    else:
-        stk_dir = self.root.find_node(self.options.stk_path)
-    if not stk_dir:
-        self.fatal('STK source code could not be found. Use the --stk-path configuration option or run "waf download_stk"')
-
     #default rawwave path
-    self.env.append_value('DEFINES_STK_STUFF','RAWWAVE_PATH="./resources/rawwaves"')
+    self.env.append_value('DEFINES_STK_STUFF','RAWWAVE_PATH="../resources/rawwaves"')
 
     #math library
     self.custom_check(header_name='cmath', lib='m', uselib_store="STK_STUFF")
@@ -86,7 +75,7 @@ def configure(self):
         elif self.options.stk_pulse:
             self.custom_check(
                     header_name='pulse/simple.h',
-                    lib='pulse',
+                    lib='pulse-simple',
                     defines=['__LINUX_PULSE__'],
                     uselib_store="STK_STUFF")
 
@@ -138,17 +127,12 @@ def configure(self):
 
 
 @conf
-def build_stk(self):
+def build(self):
     #TODO: build the asio library on windows
     #compile the STK toolkit
     self.stlib(
-        source = self.download_dir('stk').ant_glob('src/*.c??'),
-        includes = self.download_dir('stk').find_node('include').abspath(),
+        source = self.path.ant_glob('*.c??'),
+        includes = self.include_dirs('stk'),
         target = 'stk',
         use = 'STK_STUFF',
         )
-    #copy the header files to the "stk" subfolder of the include directory
-    for node in self.download_dir('stk').ant_glob('include/*'):
-        source = node
-        target = self.include_dir('stk').make_node(os.path.basename(node.abspath())).get_bld()
-        self(rule = '${COPY} ${SRC} ${TGT}', source=source, target=target)

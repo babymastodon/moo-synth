@@ -2,16 +2,17 @@
 # encoding: utf-8
 
 
-def options(opt):
+def options(self):
     pass
 
-def configure(conf):
+def configure(self):
     #audiolib include path
     pass
 
-def build(bld):
-    bld.program(
-        source = bld.path.ant_glob('src/main.cpp'),
+def build(self):
+    self.program(
+        source = self.path.ant_glob('*.cpp'),
+        includes = self.include_dirs(),
         target = 'app',
         use = ['audiolib'],
         )
