@@ -15,6 +15,12 @@ namespace audiolib{
     int sample_rate;
   }
 
+  struct AudioPortPair {
+    AudioPatch & patch;
+    int port;
+    AudioPortPair(Patch & a, int b){patch=a, port=b}
+  }
+
 
   /**
    * AudioPatch
@@ -80,6 +86,8 @@ namespace audiolib{
    *  There is a one-to-one relationship between all
    *      connections
    *
+   * Inputs/Outputs/Sources/Sinks are 0-indexed
+   *
    * */
   class AudioPatch : Patch{
     public:
@@ -90,14 +98,25 @@ namespace audiolib{
        * that spec out the input/outut/source/sink
        * by using the "addXXX()" function.
        */
-      AudioPatch(const char *)
-      AudioPatch(const string &) 
+      AudioPatch(const char * s) : Patch(s){}
+      AudioPatch(const string & s) : Patch(s){}
       ~AudioPatch()
 
-      int numAudioInputs()
-      int numAudioOutputs()
-      int numAudioSources()
-      int numAudioSinks()
+      int numAudioInputs() {return audio_input_settings_.size()}
+      int numAudioOutputs() {return audio_output_settings_.size()}
+      int numAudioSources() {return audio_source_settings_.size()}
+      int numAudioSinks() {return audio_sink_settings_.size()}
+
+      /**
+       * Get the AudioSettings associated with the
+       * nth port. If the port does not exist (it
+       * wasn't initialized), then an exception
+       * is raised.
+       */
+      const AudioSettings & getInputSettings(int n) {return audio_input_settings_[n]}
+      const AudioSettings & getOutputSettings(int n) {return audio_output_settings[n]}
+      const AudioSettings & getSourceSettings(int n) {return audio_source_settings[n]}
+      const AudioSettings & getSinkSettings(int n) {return audio_sink_settings[n]}
 
       /**
        * function connectAudioInput
@@ -107,21 +126,34 @@ namespace audiolib{
        * the source must be equal. Additionally, n and m must be
        * valid (must refer to existing inputs/sources). Eg,
        * n < this.numAudioInputs() and m < other.numaAudioOutputs().
-       * If an invarient is not met, then a runtime error is raised.
+       * If an invarient is not met, then a runtime error is thrown.
        */
       void connectAudioInput(int n, AudioPatch & other, int m)
-      void disconnectAudioInput(int n)
       void connectAudioOutput(int n, AudioPatch & other, int m)
+
+      /**
+       * Disconnects AudioInput/Output n from whatever its
+       * connected to. If n is out of range, or if nothing
+       * is connected to the port, then an exception is raised.
+       */
+      void disconnectAudioInput(int n)
       void disconnectAudioOutput(int n)
-  
-      const Iframe & sourceAudioFrame(int n)
-      void sinkAudioFrame(int n, const Iframes & frames)
 
     protected:
-      void addInput(AudioSettings & s)
-      void addOutput(AudioSettings & s)
-      void addSource(AudioSettings & s)
-      void addSink(AudioSettings & s)
+      /**
+       * To be used by subclass constructors to specify
+       * the number and format of the Audio connections
+       * belonging to this patch. For example, if this
+       * patch is supposed to have 2 AudioInputs and
+       * 1 AudioOutput, then the subclass should call
+       * addInput() twice and addOutput() once.
+       *
+       * Ports are 0-indexed
+       */
+      void addInput(const AudioSettings & s)
+      void addOutput(const AudioSettings & s)
+      void addSource(const AudioSettings & s)
+      void addSink(const AudioSettings & s)
 
       /**
        * function fetchAudioInput(n)
@@ -147,11 +179,72 @@ namespace audiolib{
       vector<AudioSettings> audio_source_settings_;
       vector<AudioSettings> audio_sink_settings_;
 
-      vector<AudioPatch*> external_audio_sources_;
-      vector<AudioPatch*> external_audio_sinks_;
+      /**
+       * keeps track of the mapping between the local
+       * Input/Output ports and the external Sources
+       * and Sinks belonging to other patches. The
+       * nth index of the external_audio_sources_
+       * vector corresponds to the AudioSource that
+       * is connected to the nth AudioInput on this
+       * object.
+       *
+       * if the pointer is null, then the port is not
+       * connected
+       */
+      vector<AudioPortPair*> external_audio_sources_;
+      vector<AudioPortPair*> external_audio_sinks_;
 
-      const Iframes & internalSourceAudioFrame()
+      /**
+       * when something connects to a Source or a Sink,
+       * it locks that resource, enforcing the one-to-
+       * one relationship between ports
+       *
+       * if the pointer is null, then the port is not
+       * connected
+       */
+      vector<bool> audio_source_locks_;
+      vector<bool> audio_sink_locks_;
 
+      /**
+       * helper functions for printing error messages
+       */
+      void print_port_occupied(const string & s, int n)
+      void print_port_empty(const string & s, int n)
+      void print_port_out_of_range(const string & s, int n)
+
+
+      /**
+       * internal functions to lock and unlock the
+       * Source and Sink ports
+       *
+       * lockXXX(N) tries to lock the specific port
+       * belonging to this. (by flipping the corresponding
+       * vector entry to true). If it fails, it returns false
+       *
+       * n is assumed to be a valid index
+       */
+      bool lockAudioSource(int n)
+      bool lockAudioSink(int n)
+      void unlockAudioSource(int n)
+      void unlockAudioSink(int n)
+  
+      /**
+       * To be implemented by sub-classes
+       *
+       * sourceAudioFrame(int n)
+       * is supposed to return a Iframes object conforming
+       * to the settings described inputSettings(n). "N" is
+       * assumed to be an index of a valid source.
+       * 
+       * sinkAudioFrame(int n)
+       * accepts an Iframes object containing frame data
+       * directed towards port n. N is assumed to be
+       * an index of a valid source
+       *
+       * default implementations raise runtime errors
+       */
+      const Iframes & sourceAudioFrame(int n)
+      void sinkAudioFrame(int n, const Iframes & frames)
   }
 
 }
