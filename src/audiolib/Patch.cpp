@@ -3,6 +3,7 @@
 #include <stringstream>
 #include <string>
 #include <utilities>
+#include <stdexcept>
 
 namespace audiolib{
 

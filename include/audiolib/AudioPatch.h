@@ -88,6 +88,11 @@ namespace audiolib{
    *
    * Inputs/Outputs/Sources/Sinks are 0-indexed
    *
+   * Subclasses should implement the following functions:
+   *    Both constructors
+   *    sourceAudioFrame (if applicable)
+   *    sinkAudioFrame (if applicable)
+   *
    * */
   class AudioPatch : Patch{
     public:
@@ -102,10 +107,10 @@ namespace audiolib{
       AudioPatch(const string & s) : Patch(s){}
       ~AudioPatch()
 
-      int numAudioInputs() {return audio_input_settings_.size()}
-      int numAudioOutputs() {return audio_output_settings_.size()}
-      int numAudioSources() {return audio_source_settings_.size()}
-      int numAudioSinks() {return audio_sink_settings_.size()}
+      int numAudioInputs() {return audio_input_settings_.size();}
+      int numAudioOutputs() {return audio_output_settings_.size();}
+      int numAudioSources() {return audio_source_settings_.size();}
+      int numAudioSinks() {return audio_sink_settings_.size();}
 
       /**
        * Get the AudioSettings associated with the
@@ -113,10 +118,10 @@ namespace audiolib{
        * wasn't initialized), then an exception
        * is raised.
        */
-      const AudioSettings & getInputSettings(int n) {return audio_input_settings_[n]}
-      const AudioSettings & getOutputSettings(int n) {return audio_output_settings[n]}
-      const AudioSettings & getSourceSettings(int n) {return audio_source_settings[n]}
-      const AudioSettings & getSinkSettings(int n) {return audio_sink_settings[n]}
+      const AudioSettings & getInputSettings(int n) {return audio_input_settings_[n];}
+      const AudioSettings & getOutputSettings(int n) {return audio_output_settings[n];}
+      const AudioSettings & getSourceSettings(int n) {return audio_source_settings[n];}
+      const AudioSettings & getSinkSettings(int n) {return audio_sink_settings[n];}
 
       /**
        * function connectAudioInput
@@ -139,6 +144,8 @@ namespace audiolib{
       void disconnectAudioInput(int n)
       void disconnectAudioOutput(int n)
 
+      const string & getName() { return name_;}
+
     protected:
       /**
        * To be used by subclass constructors to specify
@@ -160,16 +167,20 @@ namespace audiolib{
        *
        * subclasses can use this function to read a new
        * set of frames from the AudioSource that is connected
-       * to the nth AudioInput of this object
+       * to the nth AudioInput of this object. n is assumed
+       * to be an index for a non-null input. Otherwise the
+       * behavior is undefined
        */
       const Iframe & fetchAudioInput(int n)
 
       /**
-       * function fetchAudioInput(n)
+       * function pushAudioOutput(n)
        *
        * subclasses can use this function to send a
        * batch of frames to the AudioSink that is connected
-       * to the nth AudioOutput of this object
+       * to the nth AudioOutput of this object. n is assumed
+       * to be an index for a non-null output. Otherwise the
+       * behavior is undefined
        */
       void pushAudioOutput(int n, const Iframes & frames)
 
@@ -208,9 +219,11 @@ namespace audiolib{
       /**
        * helper functions for printing error messages
        */
-      void print_port_occupied(const string & s, int n)
-      void print_port_empty(const string & s, int n)
-      void print_port_out_of_range(const string & s, int n)
+      void throw_port_occupied(const string & s, int n)
+      void throw_port_empty(const string & s, int n)
+      void throw_port_out_of_range(const string & s, int n)
+      void throw_settings_dont_match(const string & s1, int n, const string & s2,
+          AudioPatch & other, int m)
 
 
       /**
