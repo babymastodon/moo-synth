@@ -6,12 +6,13 @@ def options(self):
     pass
 
 def configure(self):
-    pass
+    if self.env.CXX_NAME == "gcc":
+        self.custom_check(cxxflags="-std=c++11", uselib_store="AUDIOLIB_STUFF")
 
 def build(self):
     self.stlib(
         source = self.path.ant_glob('*.c??'),
         includes = self.include_dirs(),
         target = 'audiolib',
-        use = ['stk'],
+        use = ['stk',"AUDIOLIB_STUFF"],
         )

@@ -1,7 +1,6 @@
 #ifndef AUDIOLIB_MESSAGE_H
 #define AUDIOLIB_MESSAGE_H
 
-#include "Message.h"
 #include <string>
 
 namespace audiolib{
@@ -9,7 +8,7 @@ namespace audiolib{
   // Identifiers for the various Message classes.
   // Processors are expected to check the message type
   // and cast it to the appropriate subclass.
-  enum {
+  typedef enum {
     // The Midi enum values correspond directly to the
     // start nibble in the specification. Also, the top
     // three bytes are set to 0
@@ -32,39 +31,38 @@ namespace audiolib{
     public:
       const MessageType type_;
 
-      explicit Message(MessageType t)
+      explicit Message(MessageType t);
       
-      bool isMidi(){return type_&0xFFF0 == 0} const
-      bool isNumber(){return type_&0xFFF0 == 1} const
-      bool isInt(){return type_ == IntData} const
-      bool isFloat(){return type_ == FloatData} const
-      bool isString(){return type_ == StringData} const
+      bool isMidi() const {return (type_&0xFFF0) == 0;}
+      bool isNumber() const {return (type_&0xFFF0) == 1;}
+      bool isInt() const {return type_ == IntData;}
+      bool isFloat() const {return type_ == FloatData;}
+      bool isString() const {return type_ == StringData;}
 
     private:
   };
-
 
   class IntMessage : public Message {
     public:
       int value_;
 
       IntMessage(int n) : Message(IntData) {value_ = n;}
-  }
+  };
 
   class FloatMessage : public Message {
     public:
       float value_;
 
       FloatMessage(float n) : Message(FloatData) {value_ = n;}
-  }
+  };
 
-  class StringMessage{
+  class StringMessage : public Message{
     public:
       std::string value_;
 
       StringMessage(const char *s) : Message(StringData) {value_ = s;}
-      StringMessage(const string &s) : Message(StringData) {value_ = s;}
-  }
+      StringMessage(const std::string &s) : Message(StringData) {value_ = s;}
+  };
 
 }
 

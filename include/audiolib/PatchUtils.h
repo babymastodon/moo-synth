@@ -1,14 +1,14 @@
 #ifndef AUDIOLIB_PATCH_UTILS_H
 #define AUDIOLIB_PATCH_UTILS_H
 
-#include "Patch.h"
-#include "Message.h"
+#include "audiolib/Patch.h"
+#include "audiolib/Message.h"
 #include <functional>
 #include <string>
 
 namespace audiolib{
 
-  typedef std::functional<void(int, const Message &, SendMessageCallback &)> ProcessMessageCallback;
+  typedef std::function<void(int, const Message &, SendMessageCallback &)> ProcessMessageCallback;
 
   /**
    * FunctionalPatch
@@ -18,12 +18,12 @@ namespace audiolib{
    */
   class FunctionalPatch : Patch{
     public:
-      explicit Patch(const char * name, ProcessMessageCallback)
-      explicit Patch(const string & name, ProcessMessageCallback)
+      explicit FunctionalPatch(const char * name, ProcessMessageCallback);
+      explicit FunctionalPatch(const std::string & name, ProcessMessageCallback);
 
     private:
       const ProcessMessageCallback callback_;
-      virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send){}
+      virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
   };
 
 
@@ -37,8 +37,8 @@ namespace audiolib{
    */
   class PassthroughPatch : Patch{
     private:
-      virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send){}
-  }
+      virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
+  };
 
 
   /**
@@ -50,8 +50,8 @@ namespace audiolib{
    */
   class JunctionPatch : Patch{
     private:
-      virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send){}
-  }
+      virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
+  };
 
 }
 

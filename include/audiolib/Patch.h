@@ -1,27 +1,39 @@
 #ifndef AUDIOLIB_PATCH_H
 #define AUDIOLIB_PATCH_H
 
-#include "Message.h"
+#include "audiolib/Message.h"
 #include <unordered_map>
+#include <set>
 #include <functional>
 #include <string>
 
 namespace audiolib{
 
+  class Patch;
+
   struct PortPair{
     Patch& patch;
     int port;
-    PortPair(Patch & a, int b){patch=a, port=b}
-  }
+    PortPair(Patch & a, int b) : patch(a), port(b) {}
+  };
 
-  typedef std::functional<void(int, const Message &)> SendMessageCallback;
+  typedef std::function<void(int, const Message &)> SendMessageCallback;
+
+
+  /**
+   * Note:
+   * It doesn't make any sense for a patch
+   * to be moved or copied. Things will explode
+   * if the user tries to move or copy a patch
+   * (eg, put it in an STL container).
+   */
 
   class Patch{
     public:
-      explicit Patch(const char * name)
-      explicit Patch(const string & name)
+      explicit Patch(const char * name);
+      explicit Patch(const std::string & name);
 
-      ~Patch()
+      ~Patch();
 
       /**
        * Direct all messages coming from out_port into the
@@ -29,18 +41,20 @@ namespace audiolib{
        * connection coming out of an out_port, but multiple
        * connections can go into an in_port.
        */
-      void connectMessagePort(int out_port, Patch & patch, int in_port)
-      void unconnectMessagePort(int out_port)
+      void connectMessagePort(int out_port, Patch & patch, int in_port);
+      void unconnectMessagePort(int out_port);
 
       /**
        * receives a message. checks the TTL,
        * and then passes control to the processMessage
        * function
        */
-      void receiveMessage(int in_port, const Message & m, int ttl)
+      void receiveMessage(int in_port, const Message & m, int ttl=2048);
+
+      const std::string & getName() { return name_;}
 
     protected:
-      const set<int> & getMessageOutputPorts(){return message_output_ports;}
+      const std::set<int> & getMessageOutputPorts(){return message_output_ports_;}
 
     private:
       /**
@@ -49,13 +63,15 @@ namespace audiolib{
        * the same data as in message_output_map_, but this
        * set is provided for convenience)
        */
-      set<int> message_output_ports_;
+      std::set<int> message_output_ports_;
 
+      /**
       * mapping between output ports on the current object
       * to (object, input port) pairs representing their
       * destinations
-      unordered_map<int, PortPair> message_output_map_;
-      const string & name_;
+      */
+      std::unordered_map<int, PortPair> message_output_map_;
+      const std::string name_;
 
       static int id_counter;
 
@@ -78,21 +94,7 @@ namespace audiolib{
        * wrapped in a closure (to capture TTL) and gets
        * passed as an argument to processMessage()
        */
-      void sendMessage(int out_port, const Message & m, int ttl)
-
-
-      /**
-       * It doesn't make any sense for a patch
-       * to be moved or copied. Things will explode
-       * if the user tries to move or copy a patch
-       * (eg, put it in an STL container). So,
-       * we make these constructors private so that the
-       * compiler throws an error
-       */
-      Patch& operator=(const Patch & other){}
-      Patch(const Patch && other){}
-      Patch(const Patch & other){}
-
+      void sendMessage(int out_port, const Message & m, int ttl);
   };
 
 }

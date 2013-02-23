@@ -2,6 +2,7 @@
 #define AUDIOLIB_AUDIO_PATCH_H
 
 #include "audiolib/Patch.h"
+#include "audiolib/Iframes.h"
 #include <functional>
 #include <vector>
 #include <string>
@@ -9,17 +10,20 @@
 
 namespace audiolib{
 
+  class AudioPatch;
+
   struct AudioSettings {
     int n_frames;
     int n_channels;
     int sample_rate;
-  }
+    bool operator==(const AudioSettings & other) const;
+  };
 
   struct AudioPortPair {
     AudioPatch & patch;
     int port;
-    AudioPortPair(Patch & a, int b){patch=a, port=b}
-  }
+    AudioPortPair(AudioPatch & a, int b) : patch(a), port(b) {}
+  };
 
 
   /**
@@ -94,7 +98,7 @@ namespace audiolib{
    *    sinkAudioFrame (if applicable)
    *
    * */
-  class AudioPatch : Patch{
+  class AudioPatch : public Patch{
     public:
 
       /**
@@ -104,8 +108,8 @@ namespace audiolib{
        * by using the "addXXX()" function.
        */
       AudioPatch(const char * s) : Patch(s){}
-      AudioPatch(const string & s) : Patch(s){}
-      ~AudioPatch()
+      AudioPatch(const std::string & s) : Patch(s){}
+      ~AudioPatch();
 
       int numAudioInputs() {return audio_input_settings_.size();}
       int numAudioOutputs() {return audio_output_settings_.size();}
@@ -118,10 +122,10 @@ namespace audiolib{
        * wasn't initialized), then an exception
        * is raised.
        */
-      const AudioSettings & getInputSettings(int n) {return audio_input_settings_[n];}
-      const AudioSettings & getOutputSettings(int n) {return audio_output_settings[n];}
-      const AudioSettings & getSourceSettings(int n) {return audio_source_settings[n];}
-      const AudioSettings & getSinkSettings(int n) {return audio_sink_settings[n];}
+      const AudioSettings & getAudioInputSettings(int n) {return audio_input_settings_[n];}
+      const AudioSettings & getAudioOutputSettings(int n) {return audio_output_settings_[n];}
+      const AudioSettings & getAudioSourceSettings(int n) {return audio_source_settings_[n];}
+      const AudioSettings & getAudioSinkSettings(int n) {return audio_sink_settings_[n];}
 
       /**
        * function connectAudioInput
@@ -133,18 +137,16 @@ namespace audiolib{
        * n < this.numAudioInputs() and m < other.numaAudioOutputs().
        * If an invarient is not met, then a runtime error is thrown.
        */
-      void connectAudioInput(int n, AudioPatch & other, int m)
-      void connectAudioOutput(int n, AudioPatch & other, int m)
+      void connectAudioInput(int n, AudioPatch & other, int m);
+      void connectAudioOutput(int n, AudioPatch & other, int m);
 
       /**
        * Disconnects AudioInput/Output n from whatever its
        * connected to. If n is out of range, or if nothing
        * is connected to the port, then an exception is raised.
        */
-      void disconnectAudioInput(int n)
-      void disconnectAudioOutput(int n)
-
-      const string & getName() { return name_;}
+      void disconnectAudioInput(int n);
+      void disconnectAudioOutput(int n);
 
     protected:
       /**
@@ -157,10 +159,10 @@ namespace audiolib{
        *
        * Ports are 0-indexed
        */
-      void addInput(const AudioSettings & s)
-      void addOutput(const AudioSettings & s)
-      void addSource(const AudioSettings & s)
-      void addSink(const AudioSettings & s)
+      void addInput(const AudioSettings & s);
+      void addOutput(const AudioSettings & s);
+      void addSource(const AudioSettings & s);
+      void addSink(const AudioSettings & s);
 
       /**
        * function fetchAudioInput(n)
@@ -171,7 +173,7 @@ namespace audiolib{
        * to be an index for a non-null input. Otherwise the
        * behavior is undefined
        */
-      const Iframe & fetchAudioInput(int n)
+      const Iframes & fetchAudioInput(int n);
 
       /**
        * function pushAudioOutput(n)
@@ -182,13 +184,13 @@ namespace audiolib{
        * to be an index for a non-null output. Otherwise the
        * behavior is undefined
        */
-      void pushAudioOutput(int n, const Iframes & frames)
+      void pushAudioOutput(int n, const Iframes & frames);
 
     private:
-      vector<AudioSettings> audio_input_settings_;
-      vector<AudioSettings> audio_output_settings_;
-      vector<AudioSettings> audio_source_settings_;
-      vector<AudioSettings> audio_sink_settings_;
+      std::vector<AudioSettings> audio_input_settings_;
+      std::vector<AudioSettings> audio_output_settings_;
+      std::vector<AudioSettings> audio_source_settings_;
+      std::vector<AudioSettings> audio_sink_settings_;
 
       /**
        * keeps track of the mapping between the local
@@ -202,8 +204,8 @@ namespace audiolib{
        * if the pointer is null, then the port is not
        * connected
        */
-      vector<AudioPortPair*> external_audio_sources_;
-      vector<AudioPortPair*> external_audio_sinks_;
+      std::vector<AudioPortPair*> external_audio_sources_;
+      std::vector<AudioPortPair*> external_audio_sinks_;
 
       /**
        * when something connects to a Source or a Sink,
@@ -213,17 +215,17 @@ namespace audiolib{
        * if the pointer is null, then the port is not
        * connected
        */
-      vector<bool> audio_source_locks_;
-      vector<bool> audio_sink_locks_;
+      std::vector<bool> audio_source_locks_;
+      std::vector<bool> audio_sink_locks_;
 
       /**
        * helper functions for printing error messages
        */
-      void throw_port_occupied(const string & s, int n)
-      void throw_port_empty(const string & s, int n)
-      void throw_port_out_of_range(const string & s, int n)
-      void throw_settings_dont_match(const string & s1, int n, const string & s2,
-          AudioPatch & other, int m)
+      void throw_audio_port_occupied(const std::string & s, int n);
+      void throw_audio_port_empty(const std::string & s, int n);
+      void throw_audio_port_out_of_range(const std::string & s, int n);
+      void throw_audio_settings_dont_match(const std::string & s1, int n, const std::string & s2,
+          AudioPatch & other, int m);
 
 
       /**
@@ -236,10 +238,10 @@ namespace audiolib{
        *
        * n is assumed to be a valid index
        */
-      bool lockAudioSource(int n)
-      bool lockAudioSink(int n)
-      void unlockAudioSource(int n)
-      void unlockAudioSink(int n)
+      bool lockAudioSource(int n);
+      bool lockAudioSink(int n);
+      void unlockAudioSource(int n);
+      void unlockAudioSink(int n);
   
       /**
        * To be implemented by sub-classes
@@ -256,9 +258,9 @@ namespace audiolib{
        *
        * default implementations raise runtime errors
        */
-      const Iframes & sourceAudioFrame(int n)
-      void sinkAudioFrame(int n, const Iframes & frames)
-  }
+      const Iframes & sourceAudioFrames(int n);
+      void sinkAudioFrames(int n, const Iframes & frames);
+  };
 
 }
 

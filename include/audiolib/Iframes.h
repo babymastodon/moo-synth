@@ -1,11 +1,11 @@
 #ifndef AUDIOLIB_IFRAME_H
 #define AUDIOLIB_IFRAME_H
 
-#include "stk/Frame.h"
+#include "stk/Stk.h"
 
 namespace audiolib{
-  typedef StkFrames Iframes;
-  typedef StkFloat AlFloat;
+  typedef stk::StkFrames Iframes;
+  typedef stk::StkFloat AudioFloat;
 }
 
 #endif
