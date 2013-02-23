@@ -2,6 +2,7 @@
 #define AUDIOLIB_MESSAGE_H
 
 #include <string>
+#include "audiolib/Iframes.h"
 
 namespace audiolib{
   
@@ -38,6 +39,7 @@ namespace audiolib{
       bool isInt() const {return type_ == IntData;}
       bool isFloat() const {return type_ == FloatData;}
       bool isString() const {return type_ == StringData;}
+      virtual std::string toString() const =0;
 
     private:
   };
@@ -47,13 +49,15 @@ namespace audiolib{
       int value_;
 
       IntMessage(int n) : Message(IntData) {value_ = n;}
+      virtual std::string toString() const;
   };
 
   class FloatMessage : public Message {
     public:
-      float value_;
+      AudioFloat value_;
 
       FloatMessage(float n) : Message(FloatData) {value_ = n;}
+      virtual std::string toString() const;
   };
 
   class StringMessage : public Message{
@@ -62,6 +66,7 @@ namespace audiolib{
 
       StringMessage(const char *s) : Message(StringData) {value_ = s;}
       StringMessage(const std::string &s) : Message(StringData) {value_ = s;}
+      virtual std::string toString() const;
   };
 
 }

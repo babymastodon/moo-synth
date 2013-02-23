@@ -7,8 +7,8 @@
 #include <string>
 
 namespace audiolib{
-
-  typedef std::function<void(int, const Message &, SendMessageCallback &)> ProcessMessageCallback;
+  
+  typedef std::function<void(Patch &, int, const Message &, SendMessageCallback &)> ProcessMessageCallback;
 
   /**
    * FunctionalPatch
@@ -16,10 +16,16 @@ namespace audiolib{
    * Sends all incoming messages through a custom function
    * which is defined during instantiation
    */
-  class FunctionalPatch : Patch{
+  class FunctionalPatch : public Patch{
     public:
-      explicit FunctionalPatch(const char * name, ProcessMessageCallback);
-      explicit FunctionalPatch(const std::string & name, ProcessMessageCallback);
+      explicit FunctionalPatch(const char * name, ProcessMessageCallback &);
+      explicit FunctionalPatch(const std::string & name, ProcessMessageCallback &);
+
+      /**
+       * Copy constructors
+       */
+      explicit FunctionalPatch(const char * name, FunctionalPatch &);
+      explicit FunctionalPatch(const std::string & name, FunctionalPatch &);
 
     private:
       const ProcessMessageCallback callback_;
@@ -35,7 +41,11 @@ namespace audiolib{
    * and combining signals within a sub-patch.
    * (once sub-patches get implemented)
    */
-  class PassthroughPatch : Patch{
+  class PassthroughPatch : public Patch{
+    public:
+      //TODO: use constructor inheritance when it gets released
+      PassthroughPatch(const char * name) : Patch(name) {}
+      PassthroughPatch(const std::string & name) : Patch(name) {}
     private:
       virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
   };
@@ -48,7 +58,12 @@ namespace audiolib{
    * ports. Calls output ports in serial order,
    * low to high.
    */
-  class JunctionPatch : Patch{
+  class JunctionPatch : public Patch{
+    public:
+      //TODO: use constructor inheritance when it gets released
+      JunctionPatch(const char * name) : Patch(name) {}
+      JunctionPatch(const std::string & name) : Patch(name) {}
+
     private:
       virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
   };
