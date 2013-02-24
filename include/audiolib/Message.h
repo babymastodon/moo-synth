@@ -9,6 +9,8 @@ namespace audiolib{
   class Message{
     public:
       virtual std::string toString() const =0;
+      /* Virtual destructor to stop memory leaks */
+      virtual ~Message() {}
   };
 
   class IntMessage : public Message {
@@ -50,25 +52,22 @@ namespace audiolib{
     public:
       int channel_;  
       AudioFloat note_; 
+      AudioFloat velocity_;
       bool on_;
 
-      NoteMessage(int channel, AudioFloat note, bool on)
-        : channel_(channel), note_(note), on_(on) {}
-      NoteMessage(int channel, int note, bool on)
-        : channel_(channel), note_((AudioFloat)note), on_(on) {}
+      NoteMessage(int channel, AudioFloat note, AudioFloat velocity, bool on)
+        : channel_(channel), note_(note), velocity_(velocity), on_(on) {}
       virtual std::string toString() const;
   };
 
   class ControlMessage : public Message{
     public:
       int channel_;
-      int controller_;
+      int control_;
       AudioFloat value_;
 
-      ControlMessage(int channel, int controller, AudioFloat value)
-        : channel_(channel), controller_(controller), value_(value) {}
-      ControlMessage(int channel, int controller, int value)
-        : channel_(channel), controller_(controller), value_((AudioFloat)value) {}
+      ControlMessage(int channel, int control, AudioFloat value)
+        : channel_(channel), control_(control), value_(value) {}
       virtual std::string toString() const;
   };
 

@@ -5,6 +5,8 @@
 #include "audiolib/Message.h"
 #include <functional>
 #include <string>
+#include <vector>
+#include "stk/RtMidi.h"
 
 namespace audiolib{
   
@@ -66,6 +68,62 @@ namespace audiolib{
 
     private:
       virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
+  };
+
+
+  /**
+   * MidiReaderPatch
+   *
+   * Converts Midi messages into internal messages.
+   * Eg: NoteMessage, ControlMessage
+   * Input/Output on all ports
+   */
+  class MidiReaderPatch : public Patch{
+    public:
+      //TODO: use constructor inheritance when it gets released
+      MidiReaderPatch(const char * name) : Patch(name) {}
+      MidiReaderPatch(const std::string & name) : Patch(name) {}
+
+    private:
+      virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
+  };
+
+
+  /**
+   * MidiWriterPatch
+   *
+   * Converts internal messages into MidiMessages
+   * Eg: NoteMessage, ControlMessage
+   * Input/Output on all ports
+   */
+  class MidiWriterPatch : public Patch{
+    public:
+      //TODO: use constructor inheritance when it gets released
+      MidiWriterPatch(const char * name) : Patch(name) {}
+      MidiWriterPatch(const std::string & name) : Patch(name) {}
+
+    private:
+      virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
+  };
+
+
+  /**
+   * VirtualMidiInputPatch
+   *
+   * Reads Midi Message from a virtual MIDI port
+   * created by RtMidi (linux and mac only)
+   * Output on all ports
+   */
+  class VirtualMidiInputPatch : public Patch{
+    public:
+      //TODO: use constructor inheritance when it gets released
+      VirtualMidiInputPatch(const char * name);
+      VirtualMidiInputPatch(const std::string & name);
+
+    private:
+      RtMidiIn midi_in_;
+      virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
+      static void callback(double, std::vector<unsigned char> *, void *);
   };
 
 }

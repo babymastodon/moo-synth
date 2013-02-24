@@ -4,6 +4,7 @@
 #include "audiolib/Utils.h"
 #include <functional>
 #include "stk/RtMidi.h"
+#include <vector>
 
 using namespace audiolib;
 using namespace std;
@@ -17,31 +18,15 @@ int main( int argc, char *argv[]){
     cout << endl;
     return;
   };
+
   FunctionalPatch p1("OutputPatch", c1);
+  MidiReaderPatch p2("Reader");
+  VirtualMidiInputPatch p3("Midi Input");
 
-  JunctionPatch p2("Junction");
-  PassthroughPatch p3("Passthrough");
-
-  IntMessage i(1);
-
-  p3.connectMessagePort(1, p2, 2);
-
-  p2.connectMessagePort(1,p1,3);
-
-  p3.receiveMessage(1, i);
-
-  RtMidiIn midi_in;
-
-  midi_in.openVirtualPort();
+  p3.connectMessagePort(1,p2,1);
+  p2.connectMessagePort(1,p1,1);
 
   while (1){
-    MidiMessage m;
-    midi_in.getMessage(&m.value_);
-
-    if (m.value_.size() > 0){
-      p3.receiveMessage(1, m);
-    }
-
     sleep(100);
   }
 }

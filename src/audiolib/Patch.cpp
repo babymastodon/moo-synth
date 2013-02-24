@@ -10,8 +10,6 @@ namespace audiolib{
 
   Patch::Patch(const std::string & name) : name_(name){}
 
-  Patch::~Patch(){}
-
   void Patch::connectMessagePort(int out_port, Patch & patch, int in_port){
     if (message_output_map_.count(out_port) == 1){
       std::stringstream s;

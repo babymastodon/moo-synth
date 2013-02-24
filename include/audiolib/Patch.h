@@ -33,7 +33,8 @@ namespace audiolib{
       explicit Patch(const char * name);
       explicit Patch(const std::string & name);
 
-      ~Patch();
+      /* Virtual destructor to stop memory leaks */
+      virtual ~Patch() {}
 
       /**
        * Direct all messages coming from out_port into the

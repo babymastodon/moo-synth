@@ -109,7 +109,8 @@ namespace audiolib{
        */
       AudioPatch(const char * s) : Patch(s){}
       AudioPatch(const std::string & s) : Patch(s){}
-      ~AudioPatch();
+      /* Virtual destructor to stop memory leaks */
+      virtual ~AudioPatch() {}
 
       int numAudioInputs() {return audio_input_settings_.size();}
       int numAudioOutputs() {return audio_output_settings_.size();}

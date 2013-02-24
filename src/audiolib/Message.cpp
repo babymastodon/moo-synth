@@ -32,13 +32,14 @@ namespace audiolib{
 
   std::string NoteMessage::toString() const {
     std::stringstream ss;
-    ss << "NoteMessage: ch " << channel_ << " n " << note_ << " on " << on_;
+    ss << "NoteMessage: ch " << channel_ << " n " << note_ << " vel ";
+    ss << velocity_ << " on " << on_;
     return ss.str();
   }
 
   std::string ControlMessage::toString() const {
     std::stringstream ss;
-    ss << "ControlMessage: ch " << channel_ << " ctl " << controller_ << " val " << value_;
+    ss << "ControlMessage: ch " << channel_ << " ctl " << control_ << " val " << value_;
     return ss.str();
   }
 }
