@@ -9,7 +9,6 @@ namespace audiolib{
 
   bool AudioSettings::operator==(const AudioSettings & other) const{
     return (
-        n_frames == other.n_frames &&
         n_channels == other.n_channels &&
         sample_rate == other.sample_rate
         );

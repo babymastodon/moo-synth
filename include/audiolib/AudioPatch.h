@@ -13,7 +13,6 @@ namespace audiolib{
   class AudioPatch;
 
   struct AudioSettings {
-    int n_frames;
     int n_channels;
     int sample_rate;
     bool operator==(const AudioSettings & other) const;

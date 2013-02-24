@@ -5,7 +5,7 @@
 
 namespace audiolib{
   typedef stk::StkFrames Iframes;
-  typedef stk::StkFloat AudioFloat;
+  typedef float AudioFloat;
 }
 
 #endif
