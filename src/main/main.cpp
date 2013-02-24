@@ -19,12 +19,16 @@ int main( int argc, char *argv[]){
     return;
   };
 
-  FunctionalPatch p1("OutputPatch", c1);
-  MidiReaderPatch p2("Reader");
-  VirtualMidiInputPatch p3("Midi Input");
+  FunctionalPatch p1("Printer Patch", c1);
+  MidiReaderPatch p2("Midi Reader");
+  VirtualMidiInputPatch p3("Midi Input moo");
+  MidiWriterPatch p4("Midi Writer");
+  VirtualMidiOutputPatch p5("Midi Output moo");
 
   p3.connectMessagePort(1,p2,1);
   p2.connectMessagePort(1,p1,1);
+  p2.connectMessagePort(2,p4,1);
+  p4.connectMessagePort(1,p5,1);
 
   while (1){
     sleep(100);

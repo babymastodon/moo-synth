@@ -86,9 +86,9 @@ namespace audiolib{
         status_bit |= 0x90;
       else          // Note Off has high nibble = 8
         status_bit |= 0x80;
-      output.value_[0] = status_bit;
-      output.value_[1] = (unsigned char) note->note_;
-      output.value_[2] = (unsigned char) note->velocity_;
+      output.value_.push_back(status_bit);
+      output.value_.push_back((unsigned char) note->note_);
+      output.value_.push_back((unsigned char) note->velocity_);
       for (auto out_port: getMessageOutputPorts())
         send(out_port, output);
       return;
@@ -96,13 +96,13 @@ namespace audiolib{
 
     /* Case ControlMessage */
     const ControlMessage * ctl = dynamic_cast<const ControlMessage*> (&m);
-    if (note){
+    if (ctl){
       MidiMessage output;
       unsigned char status_bit = ((unsigned char)ctl->channel_) & 0xF0;
       status_bit |= 0xB0;
-      output.value_[0] = status_bit;
-      output.value_[1] = (unsigned char) ctl->control_;
-      output.value_[2] = (unsigned char) ctl->value_;
+      output.value_.push_back(status_bit);
+      output.value_.push_back((unsigned char) ctl->control_);
+      output.value_.push_back((unsigned char) ctl->value_);
       for (auto out_port: getMessageOutputPorts())
         send(out_port, output);
       return;
@@ -117,9 +117,9 @@ namespace audiolib{
     : VirtualMidiInputPatch(std::string(name)) {}
 
   VirtualMidiInputPatch::VirtualMidiInputPatch(const std::string & name)
-    : Patch(name), midi_in_(RtMidi::UNSPECIFIED, name)
+    : Patch(name), midi_in_(RtMidi::UNSPECIFIED, "Cool MIDI")
   {
-    midi_in_.openVirtualPort(getName());
+    midi_in_.openVirtualPort(name);
     midi_in_.setCallback(VirtualMidiInputPatch::callback, this);
   }
 
@@ -134,4 +134,27 @@ namespace audiolib{
       send(out_port, m);
   }
 
+
+  /**
+   * VirtualMidiOutputPatch
+   */
+  VirtualMidiOutputPatch::VirtualMidiOutputPatch(const char * name)
+    : VirtualMidiOutputPatch(std::string(name)) {}
+
+  VirtualMidiOutputPatch::VirtualMidiOutputPatch(const std::string & name)
+    : Patch(name), midi_out_(RtMidi::UNSPECIFIED, "Cool MIDI")
+  {
+    midi_out_.openVirtualPort(name);
+  }
+
+  void VirtualMidiOutputPatch::processMessage(int in_port, const Message & m, SendMessageCallback & send){
+    const MidiMessage * mm = dynamic_cast<const MidiMessage*> (&m);
+    if (mm){
+      /* unfortunately, RtMidiOut.sendMessage doesn't accept const parameters
+       * (who knows why?)
+       */
+      std::vector<unsigned char> output = mm->value_;
+      midi_out_.sendMessage(&output);
+    }
+  }
 }

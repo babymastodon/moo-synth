@@ -126,6 +126,25 @@ namespace audiolib{
       static void callback(double, std::vector<unsigned char> *, void *);
   };
 
+
+  /**
+   * VirtualMidiOutputPatch
+   *
+   * Write Midi Messages to a virtual MIDI port
+   * created by RtMidi (linux and mac only)
+   * Input on all ports
+   */
+  class VirtualMidiOutputPatch : public Patch{
+    public:
+      //TODO: use constructor inheritance when it gets released
+      VirtualMidiOutputPatch(const char * name);
+      VirtualMidiOutputPatch(const std::string & name);
+
+    private:
+      RtMidiOut midi_out_;
+      virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
+  };
+
 }
 
 #endif
