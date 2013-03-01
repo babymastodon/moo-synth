@@ -145,6 +145,59 @@ namespace audiolib{
       virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
   };
 
+
+  /**
+   * MidiDemuxPatch
+   *
+   * Reads MIDI messages from all input ports.
+   * Sends the MIDI message out the port corresponding
+   * to the "channel" of the message. Only works certain
+   * messages (noteon, noteoff, control change)
+   */
+  class MidiDemuxPatch : public Patch{
+    public:
+      //TODO: use constructor inheritance when it gets released
+      MidiDemuxPatch(const char * name) : Patch(name) {}
+      MidiDemuxPatch(const std::string & name) : Patch(name) {}
+    private:
+      virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
+  };
+  
+
+  /**
+   * MidiMuxPatch
+   *
+   * Reads midi messages from all ports. If the
+   * message is noteon/off or control change, it rewrites
+   * the control number of the message to match
+   * the in-port number.
+   */
+  class MidiMuxPatch : public Patch{
+    public:
+      //TODO: use constructor inheritance when it gets released
+      MidiMuxPatch(const char * name) : Patch(name) {}
+      MidiMuxPatch(const std::string & name) : Patch(name) {}
+    private:
+      virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
+  };
+
+
+  /**
+   * MidiChannelSplitter
+   *
+   * Reads in MIDI messages. All MIDI messages
+   * with channels (note on/off, control change)
+   * get routed out port 0. All other messages
+   * get routed out port 1.
+   */
+  class MidiChannelSplitter: public Patch{
+    public:
+      //TODO: use constructor inheritance when it gets released
+      MidiChannelSplitter(const char * name) : Patch(name) {}
+      MidiChannelSplitter(const std::string & name) : Patch(name) {}
+    private:
+      virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
+  };
 }
 
 #endif

@@ -157,4 +157,68 @@ namespace audiolib{
       midi_out_.sendMessage(&output);
     }
   }
+
+
+  /**
+   * MidiDemuxPatch
+   */
+  void MidiDemuxPatch::processMessage(int in_port, const Message & m, SendMessageCallback & send){
+    /* Note messages */
+    const NoteMessage * note = dynamic_cast<const NoteMessage*> (&m);
+    if (note){
+      send(note->channel_, *note);
+      return;
+    }
+    /* Control messages */
+    const ControlMessage * control = dynamic_cast<const ControlMessage*> (&m);
+    if (control){
+      send(control->channel_, *control);
+      return;
+    }
+  }
+
+
+  /**
+   * MidiMuxPatch
+   */
+  void MidiMuxPatch::processMessage(int in_port, const Message & m, SendMessageCallback & send){
+    /* Note messages */
+    const NoteMessage * note = dynamic_cast<const NoteMessage*> (&m);
+    if (note){
+      NoteMessage n = *note;
+      n.channel_ = in_port;
+      for (auto out_port: getMessageOutputPorts())
+        send(out_port, n);
+      return;
+    }
+    /* Control messages */
+    const ControlMessage * control = dynamic_cast<const ControlMessage*> (&m);
+    if (control){
+      ControlMessage c = *control;
+      c.channel_ = in_port;
+      for (auto out_port: getMessageOutputPorts())
+        send(out_port, c);
+      return;
+    }
+  }
+
+
+  /**
+   * MidiChannelSplitter
+   */
+  void MidiChannelSplitter::processMessage(int in_port, const Message & m, SendMessageCallback & send){
+    /* Note messages */
+    const NoteMessage * note = dynamic_cast<const NoteMessage*> (&m);
+    if (note){
+      send(0, *note);
+      return;
+    }
+    /* Control messages */
+    const ControlMessage * control = dynamic_cast<const ControlMessage*> (&m);
+    if (control){
+      send(0, *control);
+      return;
+    }
+    send(0, m);
+  }
 }
