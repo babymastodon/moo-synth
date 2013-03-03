@@ -12,12 +12,6 @@ namespace audiolib{
 
   class AudioPatch;
 
-  struct AudioSettings {
-    int n_channels;
-    int sample_rate;
-    bool operator==(const AudioSettings & other) const;
-  };
-
   struct AudioPortPair {
     AudioPatch & patch;
     int port;
@@ -95,6 +89,16 @@ namespace audiolib{
    *    Both constructors
    *    sourceAudioFrame (if applicable)
    *    sinkAudioFrame (if applicable)
+   *    numAudioInputs (if applicable)
+   *    numAudioOutputs (if applicable)
+   *    numAudioSources (if applicable)
+   *    numAudioSinks (if applicable)
+   *
+   * When two audio patches are connected, their sample rates
+   *  are expected to match. Additionally, all inputs of a
+   *  an AudioPatch are to be connected to a Source, and
+   *  all outputs should be connected to a Sink. These invariants
+   *  are checked by calling the validate function.
    *
    * */
   class AudioPatch : public Patch{
@@ -106,26 +110,10 @@ namespace audiolib{
        * that spec out the input/outut/source/sink
        * by using the "addXXX()" function.
        */
-      AudioPatch(const char * s) : Patch(s){}
-      AudioPatch(const std::string & s) : Patch(s){}
+      AudioPatch(const char * s, int sample_rate = 44100) : Patch(s), sample_rate_(sample_rate){}
+      AudioPatch(const std::string & s, int sample_rate = 44100) : Patch(s), sample_rate_(sample_rate){}
       /* Virtual destructor to stop memory leaks */
       virtual ~AudioPatch() {}
-
-      int numAudioInputs() {return audio_input_settings_.size();}
-      int numAudioOutputs() {return audio_output_settings_.size();}
-      int numAudioSources() {return audio_source_settings_.size();}
-      int numAudioSinks() {return audio_sink_settings_.size();}
-
-      /**
-       * Get the AudioSettings associated with the
-       * nth port. If the port does not exist (it
-       * wasn't initialized), then an exception
-       * is raised.
-       */
-      const AudioSettings & getAudioInputSettings(int n) {return audio_input_settings_[n];}
-      const AudioSettings & getAudioOutputSettings(int n) {return audio_output_settings_[n];}
-      const AudioSettings & getAudioSourceSettings(int n) {return audio_source_settings_[n];}
-      const AudioSettings & getAudioSinkSettings(int n) {return audio_sink_settings_[n];}
 
       /**
        * function connectAudioInput
@@ -148,29 +136,35 @@ namespace audiolib{
       void disconnectAudioInput(int n);
       void disconnectAudioOutput(int n);
 
-    protected:
-      /**
-       * To be used by subclass constructors to specify
-       * the number and format of the Audio connections
-       * belonging to this patch. For example, if this
-       * patch is supposed to have 2 AudioInputs and
-       * 1 AudioOutput, then the subclass should call
-       * addInput() twice and addOutput() once.
-       *
-       * Ports are 0-indexed
-       */
-      void addInput(const AudioSettings & s);
-      void addOutput(const AudioSettings & s);
-      void addSource(const AudioSettings & s);
-      void addSink(const AudioSettings & s);
+      virtual int numAudioInputs(){return 0;}
+      virtual int numAudioOutputs(){return 0;}
+      virtual int numAudioSources(){return 0;}
+      virtual int numAudioSinks(){return 0;}
 
+      /**
+       * function validate()
+       *
+       * ensures that:
+       *    all connected sources and sinks have
+       *      the same sample rate
+       *    all of the inputs on the current device
+       *      are connected to a source
+       *    all of the outputs on the current device
+       *      are connected to a sink
+       *
+       * raises a RuntimeError with an error message
+       *    if a check fails.
+       */
+      void validate();
+
+    protected:
       /**
        * function fetchAudioInput(n)
        *
        * subclasses can use this function to read a new
        * set of frames from the AudioSource that is connected
        * to the nth AudioInput of this object. n is assumed
-       * to be an index for a non-null input. Otherwise the
+       * to be an index for an input. Otherwise the
        * behavior is undefined
        */
       const Iframes & fetchAudioInput(int n);
@@ -185,12 +179,22 @@ namespace audiolib{
        * behavior is undefined
        */
       void pushAudioOutput(int n, const Iframes & frames);
+      
+
+      /**
+       * function fetchSampleRate(n)
+       *
+       * All connected AudioPatches are expected to have
+       * this sample rate. Certain subclasses might have
+       * secondary sample rates for internal use, but they
+       * should use this one while communicating with other
+       * patches.
+       */
+      int getSampleRate() {return sample_rate_;}
+      void setSampleRate(int n) {sample_rate_ = n;}
 
     private:
-      std::vector<AudioSettings> audio_input_settings_;
-      std::vector<AudioSettings> audio_output_settings_;
-      std::vector<AudioSettings> audio_source_settings_;
-      std::vector<AudioSettings> audio_sink_settings_;
+      int sample_rate_;
 
       /**
        * keeps track of the mapping between the local
@@ -204,8 +208,8 @@ namespace audiolib{
        * if the pointer is null, then the port is not
        * connected
        */
-      std::vector<AudioPortPair*> external_audio_sources_;
-      std::vector<AudioPortPair*> external_audio_sinks_;
+      std::unordered_map<int,AudioPortPair> external_audio_sources_;
+      std::unordered_map<int,AudioPortPair> external_audio_sinks_;
 
       /**
        * when something connects to a Source or a Sink,
@@ -215,17 +219,15 @@ namespace audiolib{
        * if the pointer is null, then the port is not
        * connected
        */
-      std::vector<bool> audio_source_locks_;
-      std::vector<bool> audio_sink_locks_;
+      std::set<int> audio_source_locks_;
+      std::set<int> audio_sink_locks_;
 
       /**
        * helper functions for printing error messages
        */
-      void throw_audio_port_occupied(const std::string & s, int n);
-      void throw_audio_port_empty(const std::string & s, int n);
+      void throw_audio_port_not_connected(const std::string & s, int n);
       void throw_audio_port_out_of_range(const std::string & s, int n);
-      void throw_audio_settings_dont_match(const std::string & s1, int n, const std::string & s2,
-          AudioPatch & other, int m);
+      void throw_audio_port_occupied(const std::string & s, int n);
 
 
       /**

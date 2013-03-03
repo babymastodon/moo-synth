@@ -23,11 +23,13 @@ namespace audiolib{
        * "suggestions". The values will be modified in place
        * if the audio card wants to do something different.
        */
-      AudioDACPatch(const char * name, AudioSettings & s);
-      AudioDACPatch(const std::string & name, AudioSettings & s);
+      AudioDACPatch(const char * name, int sample_rate, int n_channels);
+      AudioDACPatch(const std::string & name, int sample_rate, int n_channels);
 
     private:
       RtAudio rt_audio_;
+      int n_channels_;
+      unsigned int buffer_frames_;
 
       static int rt_callback(void* outputBuffer, void* inputBuffer, 
           unsigned int nFrames, double streamTime,

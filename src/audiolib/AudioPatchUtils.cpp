@@ -7,20 +7,20 @@ namespace audiolib{
   /**
    * AudioDACPatch
    */
-  AudioDACPatch::AudioDACPatch(const char * name, AudioSettings & s) : AudioDACPatch(std::string(name), s) {}
+  AudioDACPatch::AudioDACPatch(const char * name, int sample_rate, int n_channels) : AudioDACPatch(std::string(name), sample_rate, n_channels) {}
 
-  AudioDACPatch::AudioDACPatch(const std::string & name, AudioSettings & s) : AudioPatch(name){
+  AudioDACPatch::AudioDACPatch(const std::string & name, int sample_rate, int n_channels) : AudioPatch(name, sample_rate), n_channels_(n_channels) {
     RtAudio::StreamParameters sp;
     sp.deviceId = rt_audio_.getDefaultOutputDevice();
-    sp.nChannels = s.n_channels;
+    sp.nChannels = n_channels_;
 
     RtAudio::StreamOptions so;
     so.flags |= RTAUDIO_MINIMIZE_LATENCY | RTAUDIO_SCHEDULE_REALTIME;
 
-    unsigned int bufferFrames = 0;
+    buffer_frames_ = 0;
 
-    rt_audio_.openStream(&sp, NULL, RTAUDIO_FLOAT32, s.sample_rate, 
-        &bufferFrames, AudioDACPatch::rt_callback, this, &so);
+    rt_audio_.openStream(&sp, NULL, RTAUDIO_FLOAT32, sample_rate, 
+        &buffer_frames_, AudioDACPatch::rt_callback, this, &so);
 
   }
 
