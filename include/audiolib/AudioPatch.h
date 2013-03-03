@@ -35,12 +35,6 @@ namespace audiolib{
    *      the case of a synthesizer/instrument), or might pull
    *      it from an AudioSource higher (closer to the source)
    *      in the tree.
-   *  AudioSink
-   *      Conceptually, an input buffer. An AudioOutput can
-   *      send it a single batch of frame data. The AudioSink
-   *      might save the frame, or it might send it off to
-   *      another AudioSink lower (closer to the output)
-   *      in the tree.
    *  AudioInput
    *      Connects to the AudioSource of another node, and
    *      pulls new data when required. For example, a node
@@ -48,20 +42,9 @@ namespace audiolib{
    *      the sound card's buffer needs more data, the node
    *      uses the "fetchAudioInput()" function to pull new
    *      frame data from the connected AudioSource.
-   *  AudioOutput
-   *      Connects to the AudioSink. Example: a ADC (microphone
-   *      input thread) will trigger an event whenever it
-   *      has a new, complete batch of audio data. A mic patch
-   *      might wrap around this thread with its AudioOutput
-   *      connected to an AudioSink of a buffer patch. Whenever
-   *      the ADC triggers the new data event, the microphone
-   *      patch will convert the data to an Iframe, and push
-   *      it out of its AudioOutput into the AudioSink of the
-   *      buffer patch.
    *
    * Basically, there are two types of connections:
    *  AudioSource -> AudioInput
-   *  AudioOutput -> AudioSink
    *
    * In each case, there is a passive end (Source/Sink),
    *      and an active end (Input/Output). At a more fundemental
@@ -126,7 +109,6 @@ namespace audiolib{
        * If an invarient is not met, then a runtime error is thrown.
        */
       void connectAudioInput(int n, AudioPatch & other, int m);
-      void connectAudioOutput(int n, AudioPatch & other, int m);
 
       /**
        * Disconnects AudioInput/Output n from whatever its
@@ -134,23 +116,17 @@ namespace audiolib{
        * is connected to the port, then an exception is raised.
        */
       void disconnectAudioInput(int n);
-      void disconnectAudioOutput(int n);
 
       virtual int numAudioInputs(){return 0;}
-      virtual int numAudioOutputs(){return 0;}
       virtual int numAudioSources(){return 0;}
-      virtual int numAudioSinks(){return 0;}
 
       /**
        * function validate()
        *
        * ensures that:
-       *    all connected sources and sinks have
-       *      the same sample rate
+       *    all connected sources have the same sample rate
        *    all of the inputs on the current device
        *      are connected to a source
-       *    all of the outputs on the current device
-       *      are connected to a sink
        *
        * raises a RuntimeError with an error message
        *    if a check fails.
@@ -169,17 +145,6 @@ namespace audiolib{
        */
       const Iframes & fetchAudioInput(int n);
 
-      /**
-       * function pushAudioOutput(n)
-       *
-       * subclasses can use this function to send a
-       * batch of frames to the AudioSink that is connected
-       * to the nth AudioOutput of this object. n is assumed
-       * to be an index for a non-null output. Otherwise the
-       * behavior is undefined
-       */
-      void pushAudioOutput(int n, const Iframes & frames);
-      
 
       /**
        * function fetchSampleRate(n)
@@ -212,7 +177,6 @@ namespace audiolib{
        * connected
        */
       std::unordered_map<int,AudioPortPair> external_audio_sources_;
-      std::unordered_map<int,AudioPortPair> external_audio_sinks_;
 
       /**
        * when something connects to a Source or a Sink,
@@ -223,7 +187,6 @@ namespace audiolib{
        * connected
        */
       std::set<int> audio_source_locks_;
-      std::set<int> audio_sink_locks_;
 
       /**
        * helper functions for printing error messages
@@ -244,9 +207,7 @@ namespace audiolib{
        * n is assumed to be a valid index
        */
       bool lockAudioSource(int n);
-      bool lockAudioSink(int n);
       void unlockAudioSource(int n);
-      void unlockAudioSink(int n);
   
       /**
        * To be implemented by sub-classes
@@ -255,16 +216,10 @@ namespace audiolib{
        * is supposed to return a Iframes object conforming
        * to the settings described inputSettings(n). "N" is
        * assumed to be an index of a valid source.
-       * 
-       * sinkAudioFrame(int n)
-       * accepts an Iframes object containing frame data
-       * directed towards port n. N is assumed to be
-       * an index of a valid source
        *
-       * default implementations raise runtime errors
+       * default implementation raises runtime errors
        */
       const Iframes & sourceAudioFrames(int n);
-      void sinkAudioFrames(int n, const Iframes & frames);
   };
 
 }

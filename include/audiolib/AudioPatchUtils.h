@@ -9,8 +9,6 @@ namespace audiolib{
   /**
    * AudioDACPatch
    *
-   * 1 input port (port 1).
-   *
    * Upon construction, it opens up a stream with the
    * audio card. This class has an internal thread
    * (managed by RtAudio) which will periodically
