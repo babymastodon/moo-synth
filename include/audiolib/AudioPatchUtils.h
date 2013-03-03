@@ -18,20 +18,15 @@ namespace audiolib{
    */
   class AudioDACPatch : public AudioPatch {
     public:
-      /**
-       * The AudioSettings passed in the constructor are just
-       * "suggestions". The values will be modified in place
-       * if the audio card wants to do something different.
-       */
-      AudioDACPatch(const char * name, int sample_rate, int n_channels);
-      AudioDACPatch(const std::string & name, int sample_rate, int n_channels);
+      AudioDACPatch(const std::string & name, unsigned int n_channels=1, unsigned int sample_rate=44100, unsigned int block_size=64);
+
+      int numAudioInputs(){return n_channels_;}
 
     private:
       RtAudio rt_audio_;
       int n_channels_;
-      unsigned int buffer_frames_;
 
-      static int rt_callback(void* outputBuffer, void* inputBuffer, 
+      static int rtCallback(void* outputBuffer, void* inputBuffer, 
           unsigned int nFrames, double streamTime,
           RtAudioStreamStatus status, void* userData);
   };

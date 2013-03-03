@@ -95,8 +95,8 @@ namespace audiolib{
    *    numAudioSinks (if applicable)
    *
    * When two audio patches are connected, their sample rates
-   *  are expected to match. Additionally, all inputs of a
-   *  an AudioPatch are to be connected to a Source, and
+   *  and block size are expected to match. Additionally, all
+   *  inputs of an AudioPatch shold be connected to a Source, and
    *  all outputs should be connected to a Sink. These invariants
    *  are checked by calling the validate function.
    *
@@ -110,8 +110,8 @@ namespace audiolib{
        * that spec out the input/outut/source/sink
        * by using the "addXXX()" function.
        */
-      AudioPatch(const char * s, int sample_rate = 44100) : Patch(s), sample_rate_(sample_rate){}
-      AudioPatch(const std::string & s, int sample_rate = 44100) : Patch(s), sample_rate_(sample_rate){}
+      AudioPatch(const std::string & s, unsigned int sample_rate = 44100, unsigned int block_size = 64)
+        : Patch(s), sample_rate_(sample_rate), block_size_(block_size){}
       /* Virtual destructor to stop memory leaks */
       virtual ~AudioPatch() {}
 
@@ -190,11 +190,14 @@ namespace audiolib{
        * should use this one while communicating with other
        * patches.
        */
-      int getSampleRate() {return sample_rate_;}
-      void setSampleRate(int n) {sample_rate_ = n;}
+      unsigned int getSampleRate() {return sample_rate_;}
+      void setSampleRate(unsigned int n) {sample_rate_ = n;}
+      unsigned int getBlockSize() {return block_size_;}
+      void setBlockSize(unsigned int n) {block_size_ = n;}
 
     private:
       int sample_rate_;
+      int block_size_;
 
       /**
        * keeps track of the mapping between the local

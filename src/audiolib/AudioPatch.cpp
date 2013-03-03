@@ -132,7 +132,8 @@ namespace audiolib{
         throw std::runtime_error(ss.str());
       }
     }
-    /* ensure that all connected AudioSources have a matching sample rate*/
+    /* ensure that all connected AudioSources have a matching
+     * sample rate and block size */
     for (auto pair: external_audio_sources_){
       if (pair.second.patch.getSampleRate() != getSampleRate()){
         std::stringstream ss;
@@ -140,12 +141,25 @@ namespace audiolib{
         ss << getName() << " and " << pair.second.patch.getName();
         throw std::runtime_error(ss.str());
       }
+      if (pair.second.patch.getBlockSize() != getBlockSize()){
+        std::stringstream ss;
+        ss << "Block Size mismatch between two connected AudioPatches: ";
+        ss << getName() << " and " << pair.second.patch.getName();
+        throw std::runtime_error(ss.str());
+      }
     }
-    /* ensure that all connected AudioSinks have a matching sample rate*/
+    /* ensure that all connected AudioSinks have a matching
+     * sample rate and block size */
     for (auto pair: external_audio_sinks_){
       if (pair.second.patch.getSampleRate() != getSampleRate()){
         std::stringstream ss;
         ss << "Sample Rate mismatch between two connected AudioPatches: ";
+        ss << getName() << " and " << pair.second.patch.getName();
+        throw std::runtime_error(ss.str());
+      }
+      if (pair.second.patch.getBlockSize() != getBlockSize()){
+        std::stringstream ss;
+        ss << "Block Size mismatch between two connected AudioPatches: ";
         ss << getName() << " and " << pair.second.patch.getName();
         throw std::runtime_error(ss.str());
       }

@@ -20,7 +20,6 @@ namespace audiolib{
    */
   class FunctionalPatch : public Patch{
     public:
-      explicit FunctionalPatch(const char * name, ProcessMessageCallback &);
       explicit FunctionalPatch(const std::string & name, ProcessMessageCallback &);
 
       /**
@@ -46,7 +45,6 @@ namespace audiolib{
   class PassthroughPatch : public Patch{
     public:
       //TODO: use constructor inheritance when it gets released
-      PassthroughPatch(const char * name) : Patch(name) {}
       PassthroughPatch(const std::string & name) : Patch(name) {}
     private:
       virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
@@ -63,7 +61,6 @@ namespace audiolib{
   class JunctionPatch : public Patch{
     public:
       //TODO: use constructor inheritance when it gets released
-      JunctionPatch(const char * name) : Patch(name) {}
       JunctionPatch(const std::string & name) : Patch(name) {}
 
     private:
@@ -81,7 +78,6 @@ namespace audiolib{
   class MidiReaderPatch : public Patch{
     public:
       //TODO: use constructor inheritance when it gets released
-      MidiReaderPatch(const char * name) : Patch(name) {}
       MidiReaderPatch(const std::string & name) : Patch(name) {}
 
     private:
@@ -99,7 +95,6 @@ namespace audiolib{
   class MidiWriterPatch : public Patch{
     public:
       //TODO: use constructor inheritance when it gets released
-      MidiWriterPatch(const char * name) : Patch(name) {}
       MidiWriterPatch(const std::string & name) : Patch(name) {}
 
     private:
@@ -117,7 +112,6 @@ namespace audiolib{
   class VirtualMidiInputPatch : public Patch{
     public:
       //TODO: use constructor inheritance when it gets released
-      VirtualMidiInputPatch(const char * name);
       VirtualMidiInputPatch(const std::string & name);
 
     private:
@@ -137,7 +131,6 @@ namespace audiolib{
   class VirtualMidiOutputPatch : public Patch{
     public:
       //TODO: use constructor inheritance when it gets released
-      VirtualMidiOutputPatch(const char * name);
       VirtualMidiOutputPatch(const std::string & name);
 
     private:
@@ -157,7 +150,6 @@ namespace audiolib{
   class MidiDemuxPatch : public Patch{
     public:
       //TODO: use constructor inheritance when it gets released
-      MidiDemuxPatch(const char * name) : Patch(name) {}
       MidiDemuxPatch(const std::string & name) : Patch(name) {}
     private:
       virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
@@ -175,7 +167,6 @@ namespace audiolib{
   class MidiMuxPatch : public Patch{
     public:
       //TODO: use constructor inheritance when it gets released
-      MidiMuxPatch(const char * name) : Patch(name) {}
       MidiMuxPatch(const std::string & name) : Patch(name) {}
     private:
       virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
@@ -193,7 +184,6 @@ namespace audiolib{
   class MidiChannelSplitter: public Patch{
     public:
       //TODO: use constructor inheritance when it gets released
-      MidiChannelSplitter(const char * name) : Patch(name) {}
       MidiChannelSplitter(const std::string & name) : Patch(name) {}
     private:
       virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);

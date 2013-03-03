@@ -5,9 +5,6 @@ namespace audiolib{
   /**
    * FunctionalPatch
    */
-  FunctionalPatch::FunctionalPatch(const char * name, ProcessMessageCallback & callback)
-    : Patch(name), callback_(callback) {}
-
   FunctionalPatch::FunctionalPatch(const std::string & name, ProcessMessageCallback & callback)
     : Patch(name), callback_(callback) {}
 
@@ -113,9 +110,6 @@ namespace audiolib{
   /**
    * VirtualMidiInputPatch
    */
-  VirtualMidiInputPatch::VirtualMidiInputPatch(const char * name)
-    : VirtualMidiInputPatch(std::string(name)) {}
-
   VirtualMidiInputPatch::VirtualMidiInputPatch(const std::string & name)
     : Patch(name), midi_in_(RtMidi::UNSPECIFIED, "Cool MIDI")
   {
@@ -138,9 +132,6 @@ namespace audiolib{
   /**
    * VirtualMidiOutputPatch
    */
-  VirtualMidiOutputPatch::VirtualMidiOutputPatch(const char * name)
-    : VirtualMidiOutputPatch(std::string(name)) {}
-
   VirtualMidiOutputPatch::VirtualMidiOutputPatch(const std::string & name)
     : Patch(name), midi_out_(RtMidi::UNSPECIFIED, "Cool MIDI")
   {

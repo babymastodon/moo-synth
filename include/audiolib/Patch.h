@@ -30,7 +30,6 @@ namespace audiolib{
 
   class Patch{
     public:
-      explicit Patch(const char * name);
       explicit Patch(const std::string & name);
 
       /* Virtual destructor to stop memory leaks */

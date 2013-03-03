@@ -6,8 +6,6 @@
 
 namespace audiolib{
 
-  Patch::Patch(const char * name) : name_(name){}
-
   Patch::Patch(const std::string & name) : name_(name){}
 
   void Patch::connectMessagePort(int out_port, Patch & patch, int in_port){
