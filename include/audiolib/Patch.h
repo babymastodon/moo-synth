@@ -1,6 +1,8 @@
 #ifndef AUDIOLIB_PATCH_H
 #define AUDIOLIB_PATCH_H
 
+#ifdef MOO
+
 #include "audiolib/Message.h"
 #include <unordered_map>
 #include <set>
@@ -98,5 +100,7 @@ namespace audiolib{
   };
 
 }
+
+#endif
 
 #endif

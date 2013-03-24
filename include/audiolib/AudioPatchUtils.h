@@ -1,6 +1,8 @@
 #ifndef AUDIOLIB_AUDIO_PATCH_UTILS_H
 #define AUDIOLIB_AUDIO_PATCH_UTILS_H
 
+#ifdef MOO
+
 #include "audiolib/AudioPatch.h"
 #include "stk/RtAudio.h"
 
@@ -30,5 +32,6 @@ namespace audiolib{
   };
 
 }
+#endif
 
 #endif

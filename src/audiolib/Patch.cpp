@@ -1,3 +1,5 @@
+#ifdef MOO
+
 #include "audiolib/Patch.h"
 #include <stdexcept>
 #include <sstream>
@@ -67,3 +69,5 @@ namespace audiolib{
     processMessage(in_port, m, callback);
   }
 }
+
+#endif

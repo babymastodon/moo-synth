@@ -1,3 +1,6 @@
+#ifdef MOO
+
+
 #include "audiolib/PatchUtils.h"
 
 namespace audiolib{
@@ -213,3 +216,6 @@ namespace audiolib{
     send(0, m);
   }
 }
+
+
+#endif

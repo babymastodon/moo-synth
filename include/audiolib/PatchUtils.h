@@ -1,6 +1,8 @@
 #ifndef AUDIOLIB_PATCH_UTILS_H
 #define AUDIOLIB_PATCH_UTILS_H
 
+#ifdef MOO
+
 #include "audiolib/Patch.h"
 #include "audiolib/Message.h"
 #include <functional>
@@ -189,5 +191,7 @@ namespace audiolib{
       virtual void processMessage(int in_port, const Message & m, SendMessageCallback & send);
   };
 }
+
+#endif
 
 #endif

@@ -11,6 +11,8 @@ using namespace std;
 
 int main( int argc, char *argv[]){
 
+  /*
+
   ProcessMessageCallback c1 = [](Patch& self, int in_port, const Message & m, SendMessageCallback & c){
     cout << "Message Received: " << self.getName() << endl;
     cout << "Port: " << in_port << endl;
@@ -33,4 +35,5 @@ int main( int argc, char *argv[]){
   while (1){
     sleep(100);
   }
+  */
 }

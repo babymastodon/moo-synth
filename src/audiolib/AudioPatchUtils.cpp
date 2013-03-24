@@ -1,3 +1,5 @@
+#ifdef MOO
+
 #include "audiolib/AudioPatchUtils.h"
 #include <string>
 #include <sstream>
@@ -78,3 +80,5 @@ namespace audiolib{
   }
 
 }
+
+#endif
