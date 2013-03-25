@@ -36,9 +36,11 @@ namespace audiolib{
         DEBUG("Node destructor " << getId())
       }
 
-      /* disable copying by default */
+      /* disable moving and copying by default */
       Node(const Node & n) = delete;
       Node& operator=(const Node & n) = delete;
+      Node(Node && n) = delete;
+      Node& operator=(Node && n) = delete;
 
       const NodeSettings& getSettings() const {return settings_;}
       int getId() const {return id_;}
@@ -50,7 +52,7 @@ namespace audiolib{
       int getSampleRate() const {return settings_.sample_rate_;}
       int getBlockSize() const {return settings_.block_size_;}
 
-      std::string toString() const {return className() + " " + std::to_string(getId());}
+      std::string toString() const {return className() + " #" + std::to_string(getId());}
       std::string toDebugString() const {
         return toString() + "\n" + indentString(toDescriptionString(), 2);
       }
@@ -134,9 +136,9 @@ namespace audiolib{
 
 
 
-  class AudioAdderNode: public Node{
+  class AudioAdder: public Node{
     public:
-      AudioAdderNode(const NodeSettings & ps);
+      AudioAdder(const NodeSettings & ps);
 
       const ConstIframesVector & computeAudio(const ConstIframesVector & inputs);
 
@@ -145,7 +147,7 @@ namespace audiolib{
       const ConstIframesVector external_output_buffer_;
 
       static NodeSettings filterNodeSettings(const NodeSettings & ps);
-      std::string className() const {return "AudioAdderNode";}
+      std::string className() const {return "AudioAdder";}
   };
 }
 

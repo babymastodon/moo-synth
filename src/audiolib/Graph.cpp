@@ -156,6 +156,10 @@ namespace audiolib{
     }
   }
 
+  int Graph::registerNode(Node * node)
+  {
+    return registerNode(std::unique_ptr<Node>(node));
+  }
 
   int Graph::registerNode(std::unique_ptr<Node> && node)
   {
@@ -217,6 +221,11 @@ namespace audiolib{
     recomputeNodeOrder();
   }
 
+  void Graph::connectAudio(int source_id, int source_port, int sink_id, int sink_port)
+  {
+    connectAudio(PortPair(source_id, source_port), PortPair(sink_id, sink_port));
+  }
+
   void Graph::disconnectAudio(const PortPair & source, const PortPair & sink){
     requireNode(source.node_id_);
     requireNode(sink.node_id_);
@@ -230,6 +239,11 @@ namespace audiolib{
     source_nw.output_audio_connections_.removeConnection(source.port_, sink);
     sink_nw.input_buffer_[sink.port_] = &null_audio_frames_;
     recomputeNodeOrder();
+  }
+
+  void Graph::disconnectAudio(int source_id, int source_port, int sink_id, int sink_port)
+  {
+    disconnectAudio(PortPair(source_id, source_port), PortPair(sink_id, sink_port));
   }
 
 
@@ -256,9 +270,9 @@ namespace audiolib{
       const NodeWrapper & nw = node_map_.at(id);
       std::string id_str;
       if (id == INPUT_ID){
-        id_str = "INPUT_ID";
+        id_str = "IN";
       } else if (id == OUTPUT_ID){
-        id_str = "OUTPUT_ID";
+        id_str = "OUT";
       } else {
         id_str = std::to_string(id);
       }

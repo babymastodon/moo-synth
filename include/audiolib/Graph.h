@@ -51,11 +51,14 @@ namespace audiolib{
 
       void validate() const;
 
+      int registerNode(Node * node);
       int registerNode(std::unique_ptr<Node> && node);
       std::unique_ptr<Node> deregisterNode(int id);
 
       void connectAudio(const PortPair & source, const PortPair & sink);
+      void connectAudio(int source_id, int source_port, int sink_id, int sink_port);
       void disconnectAudio(const PortPair & source, const PortPair & sink);
+      void disconnectAudio(int source_id, int source_port, int sink_id, int sink_port);
 
       std::string toDescriptionString() const;
 

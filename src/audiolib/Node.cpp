@@ -57,24 +57,25 @@ namespace audiolib{
 
 
   /**
-   * AudioAdderNode
+   * AudioAdder
    */
-  AudioAdderNode::AudioAdderNode(const NodeSettings & ps):
+  AudioAdder::AudioAdder(const NodeSettings & ps):
     Node(filterNodeSettings(ps)),
     internal_output_buffer_(1, getBlockSize(), getSampleRate()),
     external_output_buffer_(internal_output_buffer_)
   {}
 
-  NodeSettings AudioAdderNode::filterNodeSettings(const NodeSettings & ps)
+  NodeSettings AudioAdder::filterNodeSettings(const NodeSettings & ps)
   {
     NodeSettings s;
     s.sample_rate_ = ps.sample_rate_;
     s.block_size_= ps.block_size_;
     s.num_audio_inputs_ = ps.num_audio_inputs_;
+    s.num_audio_outputs_ = 1;
     return s;
   }
 
-  const ConstIframesVector & AudioAdderNode::computeAudio(const ConstIframesVector & inputs)
+  const ConstIframesVector & AudioAdder::computeAudio(const ConstIframesVector & inputs)
   {
     Iframes & frames = *internal_output_buffer_.at(0);
     int block_size = getBlockSize();
