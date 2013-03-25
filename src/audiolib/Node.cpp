@@ -46,7 +46,9 @@ namespace audiolib{
     Node(ps),
     null_audio_frames_(0.0, getBlockSize(), 1),
     output_buffer_(getNumAudioOutputs(), &null_audio_frames_)
-  {}
+  {
+    DEBUG("Dummy constructor " << getId())
+  }
 
   const ConstIframesVector & DummyNode::computeAudio(const ConstIframesVector & inputs)
   {

@@ -3,6 +3,7 @@
 
 #include "audiolib/Node.h"
 #include "audiolib/Iframes.h"
+#include "audiolib/Utils.h"
 #include <functional>
 #include <vector>
 #include <string>
@@ -31,7 +32,13 @@ namespace audiolib{
       Node(const NodeSettings & ps);
 
       /* Virtual destructor to stop memory leaks */
-      virtual ~Node() {}
+      virtual ~Node() {
+        DEBUG("Node destructor " << getId())
+      }
+
+      /* disable copying by default */
+      Node(const Node & n) = delete;
+      Node& operator=(const Node & n) = delete;
 
       const NodeSettings& getSettings() const {return settings_;}
       int getId() const {return id_;}
@@ -44,7 +51,10 @@ namespace audiolib{
       int getBlockSize() const {return settings_.block_size_;}
 
       std::string toString() const {return className() + " " + std::to_string(getId());}
-      std::string toDescriptionString() const;
+      std::string toDebugString() const {
+        return toString() + "\n" + indentString(toDescriptionString(), 2);
+      }
+      virtual std::string toDescriptionString() const;
 
       /**
        * function validate()

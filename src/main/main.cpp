@@ -2,6 +2,7 @@
 #include <signal.h>
 #include "audiolib/Node.h"
 #include "audiolib/Graph.h"
+#include "audiolib/Utils.h"
 #include <functional>
 #include "stk/RtMidi.h"
 #include <vector>
@@ -19,7 +20,7 @@ int main( int argc, char *argv[]){
 
   Graph n(s);
 
-  cout << n.toString() << endl;
+  cout << n.toDebugString() << endl;
 
   return 0;
 }

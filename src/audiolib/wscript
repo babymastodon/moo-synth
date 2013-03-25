@@ -6,6 +6,10 @@ def options(self):
     pass
 
 def configure(self):
+    #audiolib debug messages
+    if self.options.debug:
+        for flag in ['_AUDIOLIB_DEBUG_']:
+            self.env.append_value('DEFINES_AUDIOLIB_STUFF', flag)
     if self.env.CXX_NAME == "gcc":
         self.custom_check(cxxflags="-std=c++11", uselib_store="AUDIOLIB_STUFF")
 

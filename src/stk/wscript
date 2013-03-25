@@ -50,8 +50,8 @@ def configure(self):
 
     #stk debug messages
     if self.options.debug:
-        for flag in ['_STK_STUFF_DEBUG_','__RTAUDIO_DEBUG__','__RTMIDI_DEBUG__']:
-            self.env.append_value('DEFINES_STK_STUFF_DEBUG', flag)
+        for flag in ['_STK_DEBUG_','__RTAUDIO_DEBUG__','__RTMIDI_DEBUG__']:
+            self.env.append_value('DEFINES_STK_STUFF', flag)
 
     #operating system dependent selfiguration options
     if sys.platform == 'linux2':

@@ -119,23 +119,25 @@ namespace audiolib{
     id_counter_(FIRST_EXTERNAL_NODE_ID),
     null_audio_frames_(0.0, getBlockSize(), 1)
   {
+    DEBUG("Begin graph constructor " << getId())
     // register the dummy nodes for the input and output
     NodeSettings s = getSettings();
 
     s.num_audio_inputs_ = 0;
     s.num_audio_outputs_ = getNumAudioInputs();
-    DummyNode input(s);
+    DummyNode * input = new DummyNode(s);
 
     s.num_audio_inputs_ = getNumAudioOutputs();
     s.num_audio_outputs_ = 0;
-    DummyNode output(s);
+    DummyNode * output = new DummyNode(s);
 
     node_map_.emplace(INPUT_ID,
-        NodeWrapper(std::unique_ptr<Node>(&input), &null_audio_frames_));
+        NodeWrapper(std::unique_ptr<Node>(input), &null_audio_frames_));
     node_map_.emplace(OUTPUT_ID,
-        NodeWrapper(std::unique_ptr<Node>(&output), &null_audio_frames_));
+        NodeWrapper(std::unique_ptr<Node>(output), &null_audio_frames_));
 
     recomputeNodeOrder();
+    DEBUG("End graph constructor " << getId())
   }
 
 
@@ -252,7 +254,15 @@ namespace audiolib{
     ss << "Children:\n";
     for (auto& id: sorted_node_list_){
       const NodeWrapper & nw = node_map_.at(id);
-      ss << "  " << id << " -> " << nw.node_->toString() << "\n";
+      std::string id_str;
+      if (id == INPUT_ID){
+        id_str = "INPUT_ID";
+      } else if (id == OUTPUT_ID){
+        id_str = "OUTPUT_ID";
+      } else {
+        id_str = std::to_string(id);
+      }
+      ss << "  " << id_str << " -> " << nw.node_->toString() << "\n";
       ss << indentString(nw.node_->toDescriptionString(), 4);
     }
     return ss.str();
@@ -293,6 +303,12 @@ namespace audiolib{
 
   void Graph::recomputeNodeOrder()
   {
+    //TODO: topological sort -- break ties based on dist from output
+    std::vector<int> tmp;
+    for (auto& pair: node_map_){
+      tmp.push_back(pair.first);
+    }
+    sorted_node_list_ = std::move(tmp);
   }
 
   void Graph::requireNode(int id)
