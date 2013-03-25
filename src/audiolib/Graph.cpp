@@ -4,6 +4,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <cassert>
+#include <cmath>
 
 
 namespace audiolib{
@@ -95,14 +96,13 @@ namespace audiolib{
    * NodeSettings
    */
 
-  NodeSettings Graph::mkNodeSettings(int sample_rate, int block_size,
-      int n_inputs, int n_outputs)
+  NodeSettings Graph::filterNodeSettings(const NodeSettings & ps)
   {
     NodeSettings s;
-    s.sample_rate_ = sample_rate;
-    s.block_size_ = block_size;
-    s.num_audio_inputs_ = n_inputs;
-    s.num_audio_outputs_ = n_outputs;
+    s.sample_rate_ = ps.sample_rate_;
+    s.block_size_ = ps.block_size_;
+    s.num_audio_inputs_ = ps.num_audio_inputs_;
+    s.num_audio_outputs_ = ps.num_audio_outputs_;
     return s;
   }
 
@@ -110,22 +110,32 @@ namespace audiolib{
   /**
    * Graph
    */
+  const int Graph::INPUT_ID = 0;
+  const int Graph::OUTPUT_ID = 1;
+  const int Graph::FIRST_EXTERNAL_NODE_ID = 2;
 
-  Graph::Graph(int sample_rate, int block_size,
-      int n_inputs, int n_outputs) :
-    Node(mkNodeSettings(sample_rate, block_size, n_inputs, n_outputs)),
+  Graph::Graph(const NodeSettings & ps) :
+    Node(filterNodeSettings(ps)),
     id_counter_(FIRST_EXTERNAL_NODE_ID),
-    null_audio_frames_(0.0, block_size, 1),
-    internal_output_buffer_(n_outputs, block_size, sample_rate),
-    external_output_buffer_(internal_output_buffer_)
+    null_audio_frames_(0.0, getBlockSize(), 1)
   {
     // register the dummy nodes for the input and output
-    DummyNode input(mkNodeSettings(sample_rate, block_size, 0, n_inputs));
-    DummyNode output(mkNodeSettings(sample_rate, block_size, n_outputs, 0));
+    NodeSettings s = getSettings();
+
+    s.num_audio_inputs_ = 0;
+    s.num_audio_outputs_ = getNumAudioInputs();
+    DummyNode input(s);
+
+    s.num_audio_inputs_ = getNumAudioOutputs();
+    s.num_audio_outputs_ = 0;
+    DummyNode output(s);
+
     node_map_.emplace(INPUT_ID,
         NodeWrapper(std::unique_ptr<Node>(&input), &null_audio_frames_));
     node_map_.emplace(OUTPUT_ID,
         NodeWrapper(std::unique_ptr<Node>(&output), &null_audio_frames_));
+
+    recomputeNodeOrder();
   }
 
 
@@ -134,12 +144,12 @@ namespace audiolib{
   }
 
 
-  void Graph::validate()
+  void Graph::validate() const
   {
     //graph should be valid due to invariants during construction.
     //simply call validate on all children
     for (auto& pair: node_map_){
-      NodeWrapper & nw = pair.second;
+      const NodeWrapper & nw = pair.second;
       nw.node_->validate();
     }
   }
@@ -150,11 +160,12 @@ namespace audiolib{
     if (node->getBlockSize() != getBlockSize()){
       //TODO: raise an error
     }
-    if (node->getSampleRate() != getSampleRate()){
+    if (abs(node->getSampleRate() - getSampleRate()) < 1){
       //TODO: raise an error
     }
     int id = id_counter_++;
     node_map_.emplace(id, NodeWrapper(std::move(node), &null_audio_frames_));
+    recomputeNodeOrder();
     return id;
   }
 
@@ -171,6 +182,7 @@ namespace audiolib{
       nw2.output_audio_connections_.removeConnectionToNode(id);
       nw2.input_audio_connections_.removeConnectionToNode(id);
     }
+    recomputeNodeOrder();
     return node_ptr;
   }
 
@@ -200,6 +212,7 @@ namespace audiolib{
     }
     sink_nw.input_audio_connections_.connect(sink.port_, source);
     source_nw.output_audio_connections_.connect(source.port_, sink);
+    recomputeNodeOrder();
   }
 
   void Graph::disconnectAudio(const PortPair & source, const PortPair & sink){
@@ -214,17 +227,14 @@ namespace audiolib{
     sink_nw.input_audio_connections_.removeConnection(sink.port_, source);
     source_nw.output_audio_connections_.removeConnection(source.port_, sink);
     sink_nw.input_buffer_[sink.port_] = &null_audio_frames_;
+    recomputeNodeOrder();
   }
 
-
-  std::string Graph::toString() const
-  {
-    return "Graph " + id_;
-  }
 
   std::string Graph::toDescriptionString() const
   {
     std::stringstream ss;
+    ss << Node::toDescriptionString();
     ss << "Connections:\n";
     for (int id: sorted_node_list_){
       const NodeWrapper & src_nw = node_map_.at(id);
@@ -246,6 +256,50 @@ namespace audiolib{
       ss << indentString(nw.node_->toDescriptionString(), 4);
     }
     return ss.str();
+  }
+
+
+  const ConstIframesVector & Graph::computeAudio(const ConstIframesVector & inputs)
+  {
+    //TODO: add runtime assertions in debug mode
+    
+    NodeWrapper & input_nw = node_map_.at(INPUT_ID);
+    NodeWrapper & output_nw = node_map_.at(OUTPUT_ID);
+
+    // Read in the input frames
+    for (auto& pair: input_nw.output_audio_connections_){
+      PortPair & pp = pair.second;
+      int out_port = pair.first;
+      node_map_.at(pp.node_id_).input_buffer_.at(pp.port_) = inputs.at(out_port);
+    }
+
+    // Propegate the frames through the graph
+    for (int id: sorted_node_list_){
+      if (id == INPUT_ID || id == OUTPUT_ID){
+        continue;
+      }
+      NodeWrapper & nw = node_map_.at(id);
+      const ConstIframesVector & output_buffer = nw.node_->computeAudio(nw.input_buffer_);
+      for (auto& pair: nw.output_audio_connections_){
+        PortPair & pp = pair.second;
+        int out_port = pair.first;
+        node_map_.at(pp.node_id_).input_buffer_.at(pp.port_) = output_buffer.at(out_port);
+      }
+    }
+
+    // Our result is stored in the input_buffer_ of the output node
+    return output_nw.input_buffer_;
+  }
+
+  void Graph::recomputeNodeOrder()
+  {
+  }
+
+  void Graph::requireNode(int id)
+  {
+    if (node_map_.count(id) != 1){
+      //TODO: raise an error
+    }
   }
 
 }

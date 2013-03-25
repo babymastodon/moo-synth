@@ -8,7 +8,7 @@ namespace audiolib{
   typedef float AudioFloat;
 
   struct IframesVector : public std::vector<Iframes *>{
-    IframesVector(int size, int block_size, int sample_rate);
+    IframesVector(int size, int block_size, float sample_rate);
     ~IframesVector();
   };
 

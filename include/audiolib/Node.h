@@ -11,14 +11,14 @@
 namespace audiolib{
 
   struct NodeSettings{
-      int sample_rate_;
+      float sample_rate_;
       int block_size_;
       int num_audio_inputs_;
       int num_audio_outputs_;
       int num_message_inputs_;
       int num_message_outputs_;
 
-      NodeSettings(): sample_rate_(44100), block_size_(64), num_audio_inputs_(0),
+      NodeSettings(): sample_rate_(1), block_size_(0), num_audio_inputs_(0),
         num_audio_outputs_(0), num_message_inputs_(0), num_message_outputs_(0){}
   };
 
@@ -33,17 +33,18 @@ namespace audiolib{
       /* Virtual destructor to stop memory leaks */
       virtual ~Node() {}
 
-      const NodeSettings& getSettings() const {return node_settings_;}
+      const NodeSettings& getSettings() const {return settings_;}
+      int getId() const {return id_;}
 
-      int getNumAudioInputs() const {return node_settings_.num_audio_inputs_;}
-      int getNumAudioOutputs() const {return node_settings_.num_audio_outputs_;}
-      int getNumMessageInputs() const {return node_settings_.num_message_inputs_;}
-      int getNumMessageOutputs() const {return node_settings_.num_message_outputs_;}
-      int getSampleRate() const {return node_settings_.sample_rate_;}
-      int getBlockSize() const {return node_settings_.block_size_;}
+      int getNumAudioInputs() const {return settings_.num_audio_inputs_;}
+      int getNumAudioOutputs() const {return settings_.num_audio_outputs_;}
+      int getNumMessageInputs() const {return settings_.num_message_inputs_;}
+      int getNumMessageOutputs() const {return settings_.num_message_outputs_;}
+      int getSampleRate() const {return settings_.sample_rate_;}
+      int getBlockSize() const {return settings_.block_size_;}
 
-      std::string toString() const {return "Node " + id_;}
-      std::string toDescriptionString() const {return "";}
+      std::string toString() const {return className() + " " + std::to_string(getId());}
+      std::string toDescriptionString() const;
 
       /**
        * function validate()
@@ -92,14 +93,18 @@ namespace audiolib{
        *  input pointers not valid
        *  computeAudio()
        */
-      virtual const ConstIframesVector & computeAudio(const ConstIframesVector & inputs);
+      virtual const ConstIframesVector & computeAudio(const ConstIframesVector & inputs) = 0;
 
-      const int id_;
+
+    protected:
 
     private:
-      NodeSettings node_settings_;
+      const int id_;
+      const NodeSettings settings_;
 
       static int id_counter_;
+
+      virtual std::string className() const = 0;
   };
 
 
@@ -108,15 +113,30 @@ namespace audiolib{
     public:
       DummyNode(const NodeSettings & ps);
 
-      std::string toString() const {return "DummyNode " + id_;}
-
       const ConstIframesVector & computeAudio(const ConstIframesVector & inputs);
 
     private:
       const Iframes null_audio_frames_;
-      ConstIframesVector output_buffer_;
+      const ConstIframesVector output_buffer_;
+
+      std::string className() const {return "DummyNode";}
   };
 
+
+
+  class AudioAdderNode: public Node{
+    public:
+      AudioAdderNode(const NodeSettings & ps);
+
+      const ConstIframesVector & computeAudio(const ConstIframesVector & inputs);
+
+    private:
+      const IframesVector internal_output_buffer_;
+      const ConstIframesVector external_output_buffer_;
+
+      static NodeSettings filterNodeSettings(const NodeSettings & ps);
+      std::string className() const {return "AudioAdderNode";}
+  };
 }
 
 

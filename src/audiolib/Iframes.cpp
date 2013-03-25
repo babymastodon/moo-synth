@@ -7,7 +7,7 @@ namespace audiolib{
    * IframesVector
    */
 
-  IframesVector::IframesVector(int size, int block_size, int sample_rate) :
+  IframesVector::IframesVector(int size, int block_size, float sample_rate) :
     std::vector<Iframes *>(size, NULL)
   {
     for (int i=0; i<size; i++){

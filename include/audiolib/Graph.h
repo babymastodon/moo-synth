@@ -45,12 +45,11 @@ namespace audiolib{
   class Graph : public Node {
     public:
 
-      Graph(int sample_rate = 44100, int block_size = 64,
-          int n_inputs=0, int n_outputs=0);
+      Graph(const NodeSettings & ps);
 
       ~Graph();
 
-      void validate();
+      void validate() const;
 
       int registerNode(std::unique_ptr<Node> && node);
       std::unique_ptr<Node> deregisterNode(int id);
@@ -58,32 +57,29 @@ namespace audiolib{
       void connectAudio(const PortPair & source, const PortPair & sink);
       void disconnectAudio(const PortPair & source, const PortPair & sink);
 
-      std::string toString() const;
       std::string toDescriptionString() const;
 
       virtual const ConstIframesVector & computeAudio(const ConstIframesVector & inputs);
 
-      static const int INPUT_ID = 0;
-      static const int OUTPUT_ID = 1;
-      static const int FIRST_EXTERNAL_NODE_ID = 2;
+      static const int INPUT_ID;
+      static const int OUTPUT_ID;
+      static const int FIRST_EXTERNAL_NODE_ID;
 
     private:
 
       int id_counter_;
-      const Iframes null_audio_frames_;
       std::vector<int> sorted_node_list_;
-      IframesVector internal_output_buffer_;
-      ConstIframesVector external_output_buffer_;
       std::unordered_map<int, NodeWrapper> node_map_;
+      const Iframes null_audio_frames_;
 
 
 
-      void recomputeOrder();
+      void recomputeNodeOrder();
       void requireNode(int id);
 
 
-      static NodeSettings mkNodeSettings(int sample_rate, int block_size,
-          int n_inputs, int n_outputs);
+      static NodeSettings filterNodeSettings(const NodeSettings & ps);
+      std::string className() const {return "GraphNode";}
 
   };
 
