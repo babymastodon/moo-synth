@@ -7,12 +7,16 @@ namespace audiolib{
   typedef stk::StkFrames Iframes;
   typedef float AudioFloat;
 
-  typedef std::vector<const Iframes *> ConstIframesVector;
-
   struct IframesVector : public std::vector<Iframes *>{
     IframesVector(int size, int block_size, int sample_rate);
     ~IframesVector();
   };
+
+  struct ConstIframesVector : public std::vector<const Iframes *>{
+    ConstIframesVector(const IframesVector &);
+    ConstIframesVector(int size, const Iframes * default_value);
+  };
+
 }
 
 #endif

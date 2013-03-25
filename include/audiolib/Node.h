@@ -28,7 +28,7 @@ namespace audiolib{
       /* Subclasses are expected to initialize the internal NodeSettings object
        * upon construction by calling this superclass constructor.
        */
-      Node(const NodeSettings & ps) : node_settings_(ps), id_(id_counter_++){}
+      Node(const NodeSettings & ps);
 
       /* Virtual destructor to stop memory leaks */
       virtual ~Node() {}
@@ -42,9 +42,8 @@ namespace audiolib{
       int getSampleRate() const {return node_settings_.sample_rate_;}
       int getBlockSize() const {return node_settings_.block_size_;}
 
-      int getId() const {return id_;}
-
-      std::string toString() const {return "Node: " + id_;}
+      std::string toString() const {return "Node " + id_;}
+      std::string toDescriptionString() const {return "";}
 
       /**
        * function validate()
@@ -95,12 +94,27 @@ namespace audiolib{
        */
       virtual const ConstIframesVector & computeAudio(const ConstIframesVector & inputs);
 
+      const int id_;
 
     private:
       NodeSettings node_settings_;
-      int id_;
 
       static int id_counter_;
+  };
+
+
+
+  class DummyNode : public Node{
+    public:
+      DummyNode(const NodeSettings & ps);
+
+      std::string toString() const {return "DummyNode " + id_;}
+
+      const ConstIframesVector & computeAudio(const ConstIframesVector & inputs);
+
+    private:
+      const Iframes null_audio_frames_;
+      ConstIframesVector output_buffer_;
   };
 
 }

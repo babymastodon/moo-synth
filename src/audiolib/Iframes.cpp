@@ -21,4 +21,13 @@ namespace audiolib{
     }
   }
 
+  /**
+   * ConstIframesVector 
+   */
+
+  ConstIframesVector::ConstIframesVector(const IframesVector & other):
+    std::vector<const Iframes *>(other.begin(), other.end()){}
+  ConstIframesVector::ConstIframesVector(int size, const Iframes * default_value):
+    std::vector<const Iframes *>(size, default_value){}
+
 }
